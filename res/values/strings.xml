@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Bluetooth GPS</string>
+    <string name="no_bluetooth">Sorry, your device don\'t have bluetooth.</string>
+    <string name="connecting">Connecting</string>
+    <string name="connect">Connect</string>
+    <string name="connected">%s is connected</string>
+    <string name="connect_failed">Sorry, Connect failed.</string>
+    <string name="disconnect">Disconnect</string>
+    <string name="disable_provider">Disable Provider</string>
+    <string name="enable_provider">Enable Provider</string>
+    <string name="icon_connect">\uf157</string>
+    <string name="icon_disconnect">\uf17d</string>
+    <string name="icon_gps">\uf1f5</string>
+    <string name="stop">Stop</string>
+    <string name="is_running">Bluetooth GPS is running.</string>
+</resources>

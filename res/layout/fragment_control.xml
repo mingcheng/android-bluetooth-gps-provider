@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+              android:orientation="vertical"
+              android:layout_width="match_parent"
+              android:layout_height="wrap_content"
+              android:padding="5dip"
+        >
+
+    <TextView
+            android:text="1. Select your pared Bluetooth GPS(NMEA Compatible) device and connect."
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            style="@android:style/TextAppearance.Medium"
+            android:layout_margin="5dip"
+            android:textColor="@android:color/darker_gray"
+            />
+
+    <Spinner
+            style="@android:style/TextAppearance.Medium"
+            android:id="@+id/device_names"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"/>
+
+    <Button
+            android:id="@+id/connect"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/connect"
+            android:enabled="false"
+            style="@android:style/TextAppearance.Medium"
+            />
+
+    <TextView
+            android:text="2. Turun the toggle button ON when connection is succeeded."
+            style="@android:style/TextAppearance.Medium"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_margin="5dip"
+            android:paddingTop="10dip"
+            android:textColor="@android:color/darker_gray"
+            />
+
+    <ToggleButton
+            style="@android:style/TextAppearance.Medium"
+            android:enabled="false"
+            android:checked="false"
+            android:id="@+id/toggle_provider"
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content"
+            android:textOn="@string/disable_provider"
+            android:textOff="@string/enable_provider"
+            />
+
+    <TextView
+            android:text="3. Finished and enjoy!"
+            style="@android:style/TextAppearance.Medium"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_margin="5dip"
+            android:paddingTop="10dip"
+            android:textColor="@android:color/darker_gray"
+            />
+
+
+    <TextView
+            android:textSize="100sp"
+            android:text="@string/icon_connect"
+            android:id="@+id/icon"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="center_horizontal"
+            android:layout_gravity="center_horizontal"
+            android:textColor="@android:color/darker_gray"
+            android:layout_marginTop="15dip"
+            />
+</LinearLayout>
+
