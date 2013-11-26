@@ -4,7 +4,10 @@ import android.app.Service;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
-import android.location.*;
+import android.location.Criteria;
+import android.location.Location;
+import android.location.LocationManager;
+import android.location.LocationProvider;
 import android.os.Binder;
 import android.os.Bundle;
 import android.os.IBinder;
@@ -21,7 +24,6 @@ public class ProviderService extends Service {
     private LocationManager mLocationManager;
     private LocationReceiver mLocationReceiver;
     private Set<String> mProviderSet = new HashSet<>();
-
 
     private final class LocationReceiver extends BroadcastReceiver {
         @Override

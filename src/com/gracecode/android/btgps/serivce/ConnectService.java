@@ -35,7 +35,7 @@ import java.io.IOException;
 public class ConnectService extends Service {
     public static final String ACTION_CONNECT = "com.gracecode.btgps.service.connect";
     public static final String ACTION_DISCONNECT = "com.gracecode.btgps.service.disconnect";
-    private static final int NOTIFY_ID = (int) System.currentTimeMillis();
+    private static final int NOTIFY_ID = 0x314159;
 
     private ConnectThread mConnectThread;
     private NotificationManager mNotificationManager;
@@ -61,7 +61,7 @@ public class ConnectService extends Service {
 
             // movement
             location.setBearing((float) (event.getCourse() * 1f));
-            location.setSpeed((float) (event.getSpeed() * 0.277778f));
+            location.setSpeed((float) (event.getSpeed() * 0.514444)); // From knot to m/s
 
             // signal
             // convert km/h to m/s
@@ -102,7 +102,6 @@ public class ConnectService extends Service {
     }
 
     private SimpleBinder mSimpleBinder = new SimpleBinder();
-
 
     private class ConnectThread extends Thread implements SentenceListener {
         private BluetoothDevice mBluetoothDevice;
@@ -164,6 +163,8 @@ public class ConnectService extends Service {
                     mBluetoothDeviceSocket = null;
                 }
             }
+
+            clearNotification();
         }
 
 
@@ -194,7 +195,6 @@ public class ConnectService extends Service {
         public BluetoothDevice getDevice() {
             return mBluetoothDevice;
         }
-
     }
 
 
@@ -231,13 +231,13 @@ public class ConnectService extends Service {
     private void connect(BluetoothDevice device) {
         if (mConnectThread != null) {
             Logger.w("Close '" + mConnectThread.getDeviceName() + "' for connect new device.");
-            mConnectThread.close();
-            mConnectThread = null;
+            disconnect();
         }
 
         Logger.i("Connecting '" + device.getName() + "'");
         mConnectThread = new ConnectThread(device);
         mConnectThread.start();
+
     }
 
     private void disconnect() {
@@ -256,7 +256,9 @@ public class ConnectService extends Service {
         mNotificationManager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
 
         PendingIntent intent = PendingIntent.getActivity(
-                ConnectService.this, NOTIFY_ID, new Intent(ConnectService.this, MainActivity.class), NOTIFY_ID);
+                ConnectService.this, 0,
+                new Intent(ConnectService.this, MainActivity.class),
+                Intent.FLAG_ACTIVITY_NEW_TASK);
 
         mNotification = new NotificationCompat.Builder(ConnectService.this)
                 .setSmallIcon(R.drawable.ic_stat_running)
@@ -312,6 +314,7 @@ public class ConnectService extends Service {
         } catch (RuntimeException e) {
             e.printStackTrace();
         }
+
         super.onDestroy();
     }
 
