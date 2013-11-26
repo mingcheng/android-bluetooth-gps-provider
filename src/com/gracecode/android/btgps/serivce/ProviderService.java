@@ -22,10 +22,9 @@ import java.util.Set;
 
 public class ProviderService extends Service {
     private LocationManager mLocationManager;
-    private LocationReceiver mLocationReceiver;
     private Set<String> mProviderSet = new HashSet<>();
 
-    private final class LocationReceiver extends BroadcastReceiver {
+    private BroadcastReceiver mLocationReceiver = new BroadcastReceiver() {
         @Override
         public void onReceive(Context context, Intent intent) {
             // Get provider name from intent.
@@ -52,7 +51,7 @@ public class ProviderService extends Service {
                     break;
             }
         }
-    }
+    };
 
     private void setAllProviderLocation(Location location) {
         Iterator<String> iterator = mProviderSet.iterator();
@@ -73,24 +72,34 @@ public class ProviderService extends Service {
     public void onCreate() {
         super.onCreate();
         mLocationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
-        mLocationReceiver = new LocationReceiver();
+        registerReceiver(mLocationReceiver, BluetoothGPS.getIntentFilter());
     }
 
 
     public void addProvider(String provider) {
-        removeProvider(provider);
-        mProviderSet.add(provider);
-        mLocationManager.addTestProvider(provider,
-                false, false, false, false, true, true, true,
-                Criteria.POWER_LOW, Criteria.ACCURACY_FINE);
-        Logger.v("Add '" + provider + "' location provider.");
+        if (!mProviderSet.contains(provider)) {
+            mProviderSet.add(provider);
+            mLocationManager.addTestProvider(provider,
+                    false, false, false, false, true, true, true,
+                    Criteria.POWER_LOW, Criteria.ACCURACY_FINE);
+
+            setProviderEnabled(provider, true);
+            Logger.v("Added '" + provider + "' location provider.");
+        } else {
+            Logger.w("The provider name '" + provider + "' is already exists, ignore.");
+        }
     }
 
 
     public void removeProvider(String provider) {
         try {
-            mProviderSet.remove(provider);
-            mLocationManager.removeTestProvider(provider);
+            if (mProviderSet.contains(provider)) {
+                mProviderSet.remove(provider);
+                mLocationManager.removeTestProvider(provider);
+                Logger.i("The provider '" + provider + "' is removed.");
+            } else {
+                Logger.i("The provider '" + provider + "' not exists.");
+            }
         } catch (RuntimeException e) {
             e.printStackTrace();
         }
@@ -144,14 +153,9 @@ public class ProviderService extends Service {
     public int onStartCommand(Intent intent, int flags, int startId) {
         try {
             String provider = intent.getStringExtra(BluetoothGPS.EXTRA_PROVIDER);
-            if (!provider.isEmpty()) {
-                addProvider(provider);
-                setProviderEnabled(provider, true);
-            }
-
-            registerReceiver(mLocationReceiver, BluetoothGPS.getIntentFilter());
+            if (!provider.isEmpty()) addProvider(provider);
         } catch (RuntimeException e) {
-            stopSelf();
+            e.printStackTrace();
         }
 
         return super.onStartCommand(intent, flags, startId);
@@ -161,7 +165,6 @@ public class ProviderService extends Service {
         removeAllProvider();
         unregisterReceiver(mLocationReceiver);
     }
-
 
     @Override
     public void onDestroy() {

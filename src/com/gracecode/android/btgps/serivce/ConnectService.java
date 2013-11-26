@@ -8,6 +8,7 @@ import android.bluetooth.BluetoothSocket;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.location.Location;
 import android.location.LocationManager;
 import android.os.Binder;
@@ -49,6 +50,9 @@ public class ConnectService extends Service {
         }
     }
 
+    protected boolean isGPSHardwareSupported() {
+        return getPackageManager().hasSystemFeature(PackageManager.FEATURE_LOCATION_GPS);
+    }
 
     private class PositionListener implements ProviderListener<PositionEvent> {
         private Location convertPositionEvent2Location(PositionEvent event) {
@@ -61,10 +65,9 @@ public class ConnectService extends Service {
 
             // movement
             location.setBearing((float) (event.getCourse() * 1f));
-            location.setSpeed((float) (event.getSpeed() * 0.514444)); // From knot to m/s
+            location.setSpeed((float) (event.getSpeed() * 0.514444)); // convert knots to m/s
 
             // signal
-            // convert km/h to m/s
             location.setTime(System.currentTimeMillis());
             location.setAccuracy(event.getFixQuality().toInt());
 
@@ -116,7 +119,9 @@ public class ConnectService extends Service {
         public void run() {
             try {
                 mBluetoothDeviceSocket =
-                        mBluetoothDevice.createInsecureRfcommSocketToServiceRecord(BluetoothGPS.getUUID());
+                        mBluetoothDevice.createInsecureRfcommSocketToServiceRecord(
+                                BluetoothGPS.getUUID(mBluetoothDevice)
+                        );
 
                 // Start connect
                 mBluetoothDeviceSocket.connect();
@@ -132,6 +137,11 @@ public class ConnectService extends Service {
                     notifyRunning();
                     BroadcastHelper.sendDeviceConnectedBroadcast(ConnectService.this, mBluetoothDevice);
                     Logger.i("Bluetooth device '" + mBluetoothDevice.getName() + "' is connected.");
+
+                    if (!isGPSHardwareSupported()) {
+                        Logger.i("No GPS hardware supported, so auto add as default provider.");
+                        BroadcastHelper.sendAddProviderBroadcast(ConnectService.this, LocationManager.GPS_PROVIDER);
+                    }
                 } else {
                     throw new IOException("Socket not ready or maybe is not NMEA device.");
                 }
@@ -141,7 +151,6 @@ public class ConnectService extends Service {
                 close();
             }
         }
-
 
         public boolean isConnected() {
             return (mBluetoothDeviceSocket != null) && mBluetoothDeviceSocket.isConnected();
@@ -227,6 +236,7 @@ public class ConnectService extends Service {
             }
         }
     };
+
 
     private void connect(BluetoothDevice device) {
         if (mConnectThread != null) {

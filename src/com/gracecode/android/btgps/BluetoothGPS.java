@@ -4,6 +4,7 @@ import android.app.Application;
 import android.bluetooth.BluetoothDevice;
 import android.content.IntentFilter;
 import android.content.SharedPreferences;
+import android.os.ParcelUuid;
 import android.preference.PreferenceManager;
 import com.gracecode.android.btgps.helper.BroadcastHelper;
 import com.gracecode.android.btgps.serivce.ConnectService;
@@ -11,13 +12,13 @@ import com.gracecode.android.btgps.serivce.ConnectService;
 import java.util.UUID;
 
 /**
- * Created with IntelliJ IDEA.
- * <p/>
- * User: mingcheng
- * Date: 13-11-22
+ * Bluetooth GPS Application
+ *
+ * @author mingcheng
+ * @since 13-11-22
  */
 public class BluetoothGPS extends Application {
-    public static final String UUID_STRING = "00001101-0000-1000-8000-00805F9B34FB";
+    public static final String UUID_STRING = "00001101-0000-1000-8000-00805f9b34fb";
     public static final String GPS_PROVIDER = "btgps";
 
     public static final String ACTION_UPDATE_LOCATION = "bluetoothgps.action.updatelocation";
@@ -54,6 +55,7 @@ public class BluetoothGPS extends Application {
     public void onCreate() {
         super.onCreate();
 
+        // Make single instance.
         mInstance = BluetoothGPS.this;
 
         // Start device connect service.
@@ -78,5 +80,16 @@ public class BluetoothGPS extends Application {
         }
 
         return intentFilter;
+    }
+
+    public static UUID getUUID(BluetoothDevice device) {
+        ParcelUuid[] uuids = device.getUuids();
+        if (uuids.length > 0) {
+            for (int i = 0; i < uuids.length; i++) {
+                return uuids[i].getUuid();
+            }
+        }
+
+        return getUUID();
     }
 }

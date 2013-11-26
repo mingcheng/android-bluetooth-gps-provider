@@ -25,8 +25,6 @@ import java.util.List;
 import java.util.Set;
 
 public class ControlFragment extends Fragment implements View.OnClickListener {
-    private static final String GPS_PROVIDER = LocationManager.GPS_PROVIDER;
-
     private ArrayAdapter<String> mBluetoothNamesAdapter;
     private Spinner mDeviceNamesSpinner;
     private Button mButtonConnectButton;
@@ -227,7 +225,7 @@ public class ControlFragment extends Fragment implements View.OnClickListener {
                     intent.setAction(BluetoothGPS.ACTION_PROVIDER_REMOVE);
                 }
 
-                intent.putExtra(BluetoothGPS.EXTRA_PROVIDER, GPS_PROVIDER);
+                intent.putExtra(BluetoothGPS.EXTRA_PROVIDER, LocationManager.GPS_PROVIDER);
                 break;
         }
 
