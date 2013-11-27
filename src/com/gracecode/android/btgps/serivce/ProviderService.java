@@ -4,10 +4,7 @@ import android.app.Service;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
-import android.location.Criteria;
-import android.location.Location;
-import android.location.LocationManager;
-import android.location.LocationProvider;
+import android.location.*;
 import android.os.Binder;
 import android.os.Bundle;
 import android.os.IBinder;
@@ -20,7 +17,7 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Set;
 
-public class ProviderService extends Service {
+public class ProviderService extends Service implements GpsStatus.NmeaListener {
     private LocationManager mLocationManager;
     private Set<String> mProviderSet = new HashSet<>();
 
@@ -73,6 +70,7 @@ public class ProviderService extends Service {
         super.onCreate();
         mLocationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
         registerReceiver(mLocationReceiver, BluetoothGPS.getIntentFilter());
+        mLocationManager.addNmeaListener(ProviderService.this);
     }
 
 
@@ -164,6 +162,7 @@ public class ProviderService extends Service {
     private void clean() throws RuntimeException {
         removeAllProvider();
         unregisterReceiver(mLocationReceiver);
+        mLocationManager.removeNmeaListener(ProviderService.this);
     }
 
     @Override
@@ -176,6 +175,10 @@ public class ProviderService extends Service {
         super.onDestroy();
     }
 
+    @Override
+    public void onNmeaReceived(long timestamp, String sentence) {
+       // Logger.v(sentence);
+    }
 
     public class SimpleBinder extends Binder {
         public ProviderService getService() {

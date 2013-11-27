@@ -33,6 +33,9 @@ import net.sf.marineapi.provider.event.ProviderListener;
 import net.sf.marineapi.provider.event.SatelliteInfoEvent;
 
 import java.io.IOException;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.UUID;
 
 public class ConnectService extends Service {
@@ -59,13 +62,34 @@ public class ConnectService extends Service {
         @Override
         public void providerUpdate(SatelliteInfoEvent event) {
 
-
-            Logger.v(event.toString());
-            // ...
+//            Logger.v(event.toString());
         }
     }
 
+
     private class PositionListener implements ProviderListener<PositionEvent> {
+        private SimpleDateFormat mSimpleDateFormatter
+                = new SimpleDateFormat("yyyy-MM-dd 'at' HH:mm:ssZ");
+
+        /**
+         * Convert PositionEvent's time to timestamp.
+         *
+         * @param event PositionEvent
+         * @return UNIX Timestamp
+         */
+        private long getTimestampFromPositionEvent(PositionEvent event) {
+            Date date = new Date();
+            try {
+                date = mSimpleDateFormatter.parse(
+                        event.getDate().toISO8601() + " at " + event.getTime().toISO8601());
+            } catch (ParseException e) {
+                e.printStackTrace();
+            }
+
+            return date.getTime();
+        }
+
+
         /**
          * Convert PositionEvent To Android Location
          *
@@ -86,7 +110,7 @@ public class ConnectService extends Service {
             location.setSpeed((float) (event.getSpeed() * 0.514444f)); // convert knot to m/s
 
             // signal
-            location.setTime(System.currentTimeMillis());
+            location.setTime(getTimestampFromPositionEvent(event));
             location.setAccuracy(event.getFixQuality().toInt());
 
             return location;
