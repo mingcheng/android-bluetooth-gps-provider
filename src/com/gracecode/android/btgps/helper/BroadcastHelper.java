@@ -53,4 +53,10 @@ public final class BroadcastHelper {
                 .setAction(BluetoothGPS.ACTION_PROVIDER_ADD)
                 .putExtra(BluetoothGPS.EXTRA_PROVIDER, provider));
     }
+
+    public static void sendSentenceUpdateBroadcast(Context context, String sentence) {
+        context.sendBroadcast(new Intent()
+                .setAction(BluetoothGPS.ACTION_UPDATE_SENTENCE)
+                .putExtra(BluetoothGPS.EXTRA_SENTENCE, sentence));
+    }
 }

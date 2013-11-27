@@ -29,6 +29,8 @@ public class BluetoothGPS extends Application {
     public static final String ACTION_PROVIDER_ADD = "bluetoothgps.action.provider.add";
     public static final String ACTION_PROVIDER_REMOVE = "bluetoothgps.action.provider.remove";
     public static final String ACTION_UPDATE_SATELLITE = "bluetoothgps.action.updatesatellite";
+    public static final String ACTION_UPDATE_SENTENCE = "bluetoothgps.action.updatesentence";
+
 
     private static final String[] ACTION_ALL = new String[]{
             BluetoothDevice.ACTION_ACL_CONNECTED,
@@ -38,12 +40,14 @@ public class BluetoothGPS extends Application {
             ACTION_DEVICE_DISCONNECTED, ACTION_DEVICE_CONNECTED,
             ACTION_PROVIDER_ADD, ACTION_PROVIDER_REMOVE,
             ACTION_DEVICE_CONNECT_SUCCESS, ACTION_DEVICE_CONNECT_FAILED,
-            ACTION_UPDATE_LOCATION, ACTION_UPDATE_SATELLITE
+            ACTION_UPDATE_LOCATION, ACTION_UPDATE_SATELLITE, ACTION_UPDATE_SENTENCE
     };
 
     public static final String EXTRA_LOCATION = "bluetoothgps.extra.location";
     public static final String EXTRA_DEVICE = BluetoothDevice.EXTRA_NAME;
     public static final String EXTRA_PROVIDER = "bluetoothgps.extra.location.provider";
+    public static final String EXTRA_SENTENCE = "bluetoothgps.extra.sentence";
+
 
     private static BluetoothGPS mInstance;
 
