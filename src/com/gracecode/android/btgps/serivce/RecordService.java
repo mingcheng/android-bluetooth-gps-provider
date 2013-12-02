@@ -20,7 +20,6 @@ public class RecordService extends Service {
     private SharedPreferences mSharedPreferences;
     private BufferedWriter mTrackRecordsWriter;
     private File mTrackFile;
-    private int mTrackNumber = 0;
 
     private BroadcastReceiver mNMEAReceiver = new BroadcastReceiver() {
         @Override
@@ -30,7 +29,6 @@ public class RecordService extends Service {
                     String sentence = intent.getStringExtra(BluetoothGPS.EXTRA_SENTENCE);
                     try {
                         mTrackRecordsWriter.write(sentence + "\n");
-                        mTrackNumber++;
                     } catch (IOException e) {
                         e.printStackTrace();
                     }
@@ -117,8 +115,8 @@ public class RecordService extends Service {
             mTrackRecordsWriter.flush();
             mTrackRecordsWriter.close();
 
-            // delete track file if not record anything.
-            if (mTrackNumber == 0) {
+            // delete track file if doesn't record anything.
+            if (mTrackFile.length() == 0) {
                 mTrackFile.delete();
             }
         } catch (IOException e) {
