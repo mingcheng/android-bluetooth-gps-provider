@@ -9,17 +9,16 @@ import com.gracecode.android.btgps.BluetoothGPS;
 import com.gracecode.android.btgps.R;
 import com.gracecode.android.btgps.util.Logger;
 
+import java.io.BufferedWriter;
 import java.io.File;
-import java.io.FileOutputStream;
+import java.io.FileWriter;
 import java.io.IOException;
-import java.io.OutputStreamWriter;
 import java.util.Date;
 
 public class RecordService extends Service {
     private BluetoothGPS mBluetoothGPS;
     private SharedPreferences mSharedPreferences;
-    private FileOutputStream mTrackFileOutputStream;
-    private OutputStreamWriter mTrackFileOutputStreamWriter;
+    private BufferedWriter mTrackRecordsWriter;
     private File mTrackFile;
     private int mTrackNumber = 0;
 
@@ -30,7 +29,7 @@ public class RecordService extends Service {
                 case BluetoothGPS.ACTION_UPDATE_SENTENCE:
                     String sentence = intent.getStringExtra(BluetoothGPS.EXTRA_SENTENCE);
                     try {
-                        mTrackFileOutputStreamWriter.write(sentence + "\n");
+                        mTrackRecordsWriter.write(sentence + "\n");
                         mTrackNumber++;
                     } catch (IOException e) {
                         e.printStackTrace();
@@ -61,7 +60,7 @@ public class RecordService extends Service {
         java.text.DateFormat mDateFormat = DateFormat.getDateFormat(getApplicationContext());
         java.text.DateFormat mTimeFormat = DateFormat.getTimeFormat(getApplicationContext());
         Date now = new Date(System.currentTimeMillis());
-        String filename = mDateFormat.format(now) + " " +mTimeFormat.format(now);
+        String filename = mDateFormat.format(now) + " " + mTimeFormat.format(now);
 
         File recordFile = new File(getRecordDirectory(), filename + ".nmea");
         if (!recordFile.exists()) {
@@ -99,8 +98,7 @@ public class RecordService extends Service {
         try {
             mTrackFile = getRecordFile();
             if (mTrackFile.canWrite()) {
-                mTrackFileOutputStream = new FileOutputStream(mTrackFile);
-                mTrackFileOutputStreamWriter = new OutputStreamWriter(mTrackFileOutputStream);
+                mTrackRecordsWriter = new BufferedWriter(new FileWriter(mTrackFile));
             }
 
             Logger.i("Recording file path is " + mTrackFile.getAbsolutePath());
@@ -116,9 +114,8 @@ public class RecordService extends Service {
     @Override
     public void onDestroy() {
         try {
-            mTrackFileOutputStreamWriter.flush();
-            mTrackFileOutputStreamWriter.close();
-            mTrackFileOutputStream.close();
+            mTrackRecordsWriter.flush();
+            mTrackRecordsWriter.close();
 
             // delete track file if not record anything.
             if (mTrackNumber == 0) {
