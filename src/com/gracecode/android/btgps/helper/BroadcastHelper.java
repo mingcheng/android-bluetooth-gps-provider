@@ -7,6 +7,7 @@ import android.location.Location;
 import com.gracecode.android.btgps.BluetoothGPS;
 import com.gracecode.android.btgps.serivce.ConnectService;
 import com.gracecode.android.btgps.serivce.ProviderService;
+import com.gracecode.android.btgps.serivce.RecordService;
 
 public final class BroadcastHelper {
 
@@ -29,6 +30,10 @@ public final class BroadcastHelper {
 
     public static Intent getConnectServerIntent(Context context) {
         return new Intent(context, ConnectService.class);
+    }
+
+    public static Intent getRecordServerIntent(Context context) {
+        return new Intent(context, RecordService.class);
     }
 
     public static void sendLocationUpdateBroadcast(Context context, Location location) {

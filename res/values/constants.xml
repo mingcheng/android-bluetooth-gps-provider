@@ -47,7 +47,7 @@
     <string name="pref_sirf_enable_static_navigation_key">enableStaticNavigation</string>
 
     <string name="defaultConnectionRetries">5</string>
-    <string name="defaultTrackFileDirectory">/sdcard/nmea</string>
+    <string name="defaultTrackFileDirectory">nmea</string>
     <string name="defaultTrackFilePrefix">track</string>
     <string name="defaultMockGpsName">btgps</string>
 

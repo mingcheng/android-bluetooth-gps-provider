@@ -39,7 +39,7 @@ public class ProviderService extends Service {
                     break;
 
                 case BluetoothGPS.ACTION_UPDATE_SENTENCE:
-                    Logger.v(intent.getStringExtra(BluetoothGPS.EXTRA_SENTENCE));
+                    //Logger.v(intent.getStringExtra(BluetoothGPS.EXTRA_SENTENCE));
                     break;
 
                 case BluetoothGPS.ACTION_PROVIDER_ADD:

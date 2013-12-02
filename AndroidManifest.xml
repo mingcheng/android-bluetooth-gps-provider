@@ -39,5 +39,9 @@
         <service
                 android:name=".serivce.ConnectService"
                 android:description="@string/connect"/>
+
+        <service
+                android:name=".serivce.RecordService"
+                android:description="@string/connect"/>
     </application>
 </manifest>

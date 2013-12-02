@@ -68,7 +68,7 @@ public class PrefControlFragment extends PreferenceFragment
 
     @Override
     public boolean onPreferenceTreeClick(PreferenceScreen preferenceScreen, Preference preference) {
-        if (preference != null) {
+        try {
             switch (preference.getKey()) {
                 case BluetoothGPS.PREF_START_GPS:
                     if (mSharedPreferences.getBoolean(BluetoothGPS.PREF_START_GPS, true)) {
@@ -78,6 +78,8 @@ public class PrefControlFragment extends PreferenceFragment
                     }
                     break;
             }
+        } catch (NullPointerException e) {
+            e.printStackTrace();
         }
 
         return super.onPreferenceTreeClick(preferenceScreen, preference);

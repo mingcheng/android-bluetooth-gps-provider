@@ -182,11 +182,11 @@
                 android:title="@string/pref_trackfile_directory_title"
                 android:defaultValue="@string/defaultTrackFileDirectory"
                 android:summary="@string/pref_trackfile_directory_summary"/>
-        <EditTextPreference
-                android:key="@string/pref_trackfile_prefix_key"
-                android:title="@string/pref_trackfile_prefix_title"
-                android:defaultValue="@string/defaultTrackFilePrefix"
-                android:summary="@string/pref_trackfile_prefix_summary"/>
+        <!--<EditTextPreference-->
+                <!--android:key="@string/pref_trackfile_prefix_key"-->
+                <!--android:title="@string/pref_trackfile_prefix_title"-->
+                <!--android:defaultValue="@string/defaultTrackFilePrefix"-->
+                <!--android:summary="@string/pref_trackfile_prefix_summary"/>-->
     </PreferenceScreen>
 
     <PreferenceCategory

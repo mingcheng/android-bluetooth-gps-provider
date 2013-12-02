@@ -8,6 +8,7 @@ import android.preference.PreferenceManager;
 import com.gracecode.android.btgps.BluetoothGPS;
 import com.gracecode.android.btgps.R;
 import com.gracecode.android.btgps.task.ReadNmeaTask;
+import com.gracecode.android.btgps.util.Logger;
 
 import java.io.IOException;
 import java.util.UUID;
@@ -94,7 +95,7 @@ public class ConnectThread extends Thread {
                         connect();
                     }
                 } else {
-//                    Logger.v("Device '" + mBluetoothDevice.getName() + "' is connected.");
+                    Logger.v("Device '" + mBluetoothDevice.getName() + "' is connected.");
                     mRetries = 0;
                 }
 

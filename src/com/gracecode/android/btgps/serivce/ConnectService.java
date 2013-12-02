@@ -48,6 +48,10 @@ public class ConnectService extends Service {
                     return mSharedPreferences.getBoolean(BluetoothGPS.PREF_FORCE_ENABLE_PROVIDER, true);
                 }
 
+                private boolean isEnableLogger() {
+                    return mSharedPreferences.getBoolean(BluetoothGPS.PREF_TRACK_RECORDING, true);
+                }
+
                 private String getProviderName() {
                     if (mSharedPreferences.getBoolean(BluetoothGPS.PREF_REPLACE_STD_GPS, false)) {
                         return LocationManager.GPS_PROVIDER;
@@ -63,6 +67,11 @@ public class ConnectService extends Service {
                     if (isEnableProvider()) {
                         startService(BroadcastHelper.getProviderServerIntent(ConnectService.this, getProviderName()));
                     }
+
+                    if (isEnableLogger()) {
+                        startService(BroadcastHelper.getRecordServerIntent(ConnectService.this));
+                    }
+
                     notifyRunning();
                 }
 
@@ -77,6 +86,11 @@ public class ConnectService extends Service {
                     if (isEnableProvider()) {
                         stopService(BroadcastHelper.getProviderServerIntent(ConnectService.this, getProviderName()));
                     }
+
+                    if (isEnableLogger()) {
+                        stopService(BroadcastHelper.getRecordServerIntent(ConnectService.this));
+                    }
+
                     clearRunningNotification();
                 }
 
