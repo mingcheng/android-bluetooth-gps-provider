@@ -77,7 +77,7 @@ public class ConnectService extends Service {
 
                 @Override
                 public void onConnectedFailed(int retries) {
-                    Logger.e("Connect error, has reconnect for " + (retries + 1) + " " + "times.");
+                    Logger.e("Connect error, has reconnect for " + retries + " times.");
                 }
 
                 @Override
@@ -92,6 +92,11 @@ public class ConnectService extends Service {
                     }
 
                     clearRunningNotification();
+                }
+
+                @Override
+                public void onStartConnect() {
+
                 }
 
                 @Override
@@ -151,7 +156,7 @@ public class ConnectService extends Service {
 
     synchronized private void connect(BluetoothDevice device) {
         if (mConnectThread != null) {
-            disconnect();
+            silenceDisconnect();
         }
 
         Logger.i("Connecting '" + device.getName() + "'");
@@ -159,6 +164,13 @@ public class ConnectService extends Service {
         mConnectThread.start();
     }
 
+
+    synchronized private void silenceDisconnect() {
+        if (mConnectThread != null) {
+            mConnectThread.silenceDisconnect();
+            mConnectThread = null;
+        }
+    }
 
     synchronized private void disconnect() {
         if (mConnectThread != null) {

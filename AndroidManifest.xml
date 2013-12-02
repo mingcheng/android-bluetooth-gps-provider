@@ -33,12 +33,13 @@
         </activity>
 
         <service
-                android:name=".serivce.ProviderService"
+                android:name=".serivce.ConnectService"
                 android:description="@string/connect"/>
 
         <service
-                android:name=".serivce.ConnectService"
+                android:name=".serivce.ProviderService"
                 android:description="@string/connect"/>
+
 
         <service
                 android:name=".serivce.RecordService"

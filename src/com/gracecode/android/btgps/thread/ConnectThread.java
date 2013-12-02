@@ -24,12 +24,15 @@ public class ConnectThread extends Thread {
     private BluetoothSocket mBluetoothDeviceSocket;
     private ReadNmeaTask mReadNmeaTask;
 
+
     public interface OnStatusChangeListener extends ReadNmeaTask.OnNmeaReadListener {
         abstract public void onConnected();
 
         abstract public void onConnectedFailed(int retries);
 
         abstract public void onDisConnected();
+
+        abstract public void onStartConnect();
     }
 
 
@@ -89,7 +92,7 @@ public class ConnectThread extends Thread {
         try {
             while (isKeepRunning) {
                 if (!isConnected()) {
-                    if (mRetries > getMaxRetries()) {
+                    if (mRetries > getMaxRetries() - 1) {
                         disconnect();
                     } else {
                         connect();
@@ -111,6 +114,8 @@ public class ConnectThread extends Thread {
     public void connect() {
         try {
             UUID uuid = getUUID(mBluetoothDevice);
+
+            mListener.onStartConnect();
             if (false) {
                 mBluetoothDeviceSocket = mBluetoothDevice.createRfcommSocketToServiceRecord(uuid);
             } else {
@@ -137,7 +142,7 @@ public class ConnectThread extends Thread {
         }
     }
 
-    public void disconnect() {
+    private void disconnect(boolean notify) {
         try {
             isKeepRunning = false;
 
@@ -153,8 +158,18 @@ public class ConnectThread extends Thread {
             e.printStackTrace();
         } finally {
             mBluetoothDeviceSocket = null;
-            mListener.onDisConnected();
+            if (notify) {
+                mListener.onDisConnected();
+            }
         }
+    }
+
+    public void disconnect() {
+        disconnect(true);
+    }
+
+    public void silenceDisconnect() {
+        disconnect(false);
     }
 
     public BluetoothDevice getDevice() {
