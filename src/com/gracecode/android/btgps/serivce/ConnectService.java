@@ -20,6 +20,9 @@ import com.gracecode.android.btgps.thread.ConnectThread;
 import com.gracecode.android.btgps.ui.MainActivity;
 import com.gracecode.android.btgps.util.Logger;
 
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+
 public class ConnectService extends Service {
     public static final String ACTION_CONNECT = "com.gracecode.btgps.service.connect";
     public static final String ACTION_DISCONNECT = "com.gracecode.btgps.service.disconnect";
@@ -30,6 +33,12 @@ public class ConnectService extends Service {
     private ConnectThread mConnectThread;
     private SharedPreferences mSharedPreferences;
     private NotificationCompat.Builder mConnectFailedNotification;
+    private NotificationManager mNotificationManager;
+    private NotificationCompat.Builder mRunningNotification;
+    private SimpleBinder mSimpleBinder = new SimpleBinder();
+    private ExecutorService mSingleThreadExecutor = Executors.newSingleThreadExecutor();
+    private BluetoothDevice mBluetoothDevice;
+
 
     /**
      * Detect whether device is connected.
@@ -95,8 +104,9 @@ public class ConnectService extends Service {
                         stopService(BroadcastHelper.getRecordServerIntent(ConnectService.this));
                     }
 
+                    mConnectThread = null;
+                    mBluetoothDevice = null;
                     clearRunningNotification();
-                    clearFailedNotification();
                 }
 
 
@@ -138,8 +148,6 @@ public class ConnectService extends Service {
         }
     }
 
-    private SimpleBinder mSimpleBinder = new SimpleBinder();
-
 
     private BroadcastReceiver mBluetoothDeviceReceiver = new BroadcastReceiver() {
         @Override
@@ -154,6 +162,7 @@ public class ConnectService extends Service {
 
                 case ConnectService.ACTION_DISCONNECT:
                     disconnect();
+                    clearFailedNotification();
                     break;
             }
         }
@@ -165,9 +174,14 @@ public class ConnectService extends Service {
             silenceDisconnect();
         }
 
-        Logger.i("Connecting '" + device.getName() + "'");
-        mConnectThread = new ConnectThread(ConnectService.this, device, mOnStatusChangedListener);
-        mConnectThread.start();
+        if (mBluetoothDevice == null || !mBluetoothDevice.getAddress().equals(device.getAddress())) {
+            Logger.i("Instance new thread for connect '" + device.getName() + "' device.");
+            mConnectThread = new ConnectThread(ConnectService.this, device, mOnStatusChangedListener);
+            mBluetoothDevice = device;
+        }
+
+        Logger.i("Connecting '" + mBluetoothDevice.getName() + "'");
+        mSingleThreadExecutor.execute(mConnectThread);
     }
 
 
@@ -185,9 +199,6 @@ public class ConnectService extends Service {
         }
     }
 
-
-    private NotificationManager mNotificationManager;
-    private NotificationCompat.Builder mRunningNotification;
 
     @Override
     public void onCreate() {
@@ -211,10 +222,9 @@ public class ConnectService extends Service {
                         getStopPendingIntent());
 
         mConnectFailedNotification = new NotificationCompat.Builder(ConnectService.this)
-                .setSmallIcon(R.drawable.ic_stat_running)
+                .setSmallIcon(android.R.drawable.stat_notify_error)
                 .setContentTitle(getString(R.string.connect_failed))
-                .setContentIntent(intent)
-                .setTicker(getString(R.string.connect_failed));
+                .setContentIntent(intent);
 
         mBluetoothGPS = (BluetoothGPS) getApplication();
         mSharedPreferences = mBluetoothGPS.getSharedPreferences();
@@ -274,6 +284,7 @@ public class ConnectService extends Service {
             e.printStackTrace();
         }
 
+        mSingleThreadExecutor.shutdown();
         super.onDestroy();
     }
 
