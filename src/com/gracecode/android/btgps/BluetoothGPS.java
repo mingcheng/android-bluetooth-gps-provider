@@ -1,15 +1,17 @@
 package com.gracecode.android.btgps;
 
 import android.app.Application;
+import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
+import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.SharedPreferences;
-import android.os.ParcelUuid;
+import android.content.pm.PackageManager;
 import android.preference.PreferenceManager;
 import com.gracecode.android.btgps.helper.BroadcastHelper;
 import com.gracecode.android.btgps.serivce.ConnectService;
 
-import java.util.UUID;
+import java.util.Set;
 
 /**
  * Bluetooth GPS Application
@@ -18,8 +20,6 @@ import java.util.UUID;
  * @since 13-11-22
  */
 public class BluetoothGPS extends Application {
-    public static final String UUID_STRING = "00001101-0000-1000-8000-00805f9b34fb";
-    public static final String GPS_PROVIDER = "btgps";
 
     public static final String ACTION_UPDATE_LOCATION = "bluetoothgps.action.updatelocation";
     public static final String ACTION_DEVICE_CONNECT_FAILED = "bluetoothgps.action.connect.failed";
@@ -31,6 +31,17 @@ public class BluetoothGPS extends Application {
     public static final String ACTION_UPDATE_SATELLITE = "bluetoothgps.action.updatesatellite";
     public static final String ACTION_UPDATE_SENTENCE = "bluetoothgps.action.updatesentence";
 
+    public static final String PREF_START_GPS = "startGps";
+    public static final String PREF_GPS_LOCATION_PROVIDER = "gpsLocationProviderKey";
+    public static final String PREF_REPLACE_STD_GPS = "replaceStdtGps";
+    public static final String PREF_FORCE_ENABLE_PROVIDER = "forceEnableProvider";
+    public static final String PREF_MOCK_GPS_NAME = "mockGpsName";
+    public static final String PREF_CONNECTION_RETRIES = "connectionRetries";
+    public static final String PREF_TRACK_RECORDING = "trackRecording";
+    public static final String PREF_TRACK_FILE_DIR = "trackFileDirectory";
+    public static final String PREF_TRACK_FILE_PREFIX = "trackFilePrefix";
+    public static final String PREF_BLUETOOTH_DEVICE = "bluetoothDevice";
+    public static final String PREF_ABOUT = "about";
 
     private static final String[] ACTION_ALL = new String[]{
             BluetoothDevice.ACTION_ACL_CONNECTED,
@@ -49,33 +60,49 @@ public class BluetoothGPS extends Application {
     public static final String EXTRA_SENTENCE = "bluetoothgps.extra.sentence";
 
 
-    private static BluetoothGPS mInstance;
-
-    public static BluetoothGPS getInstance() {
-        return mInstance;
-    }
+    private BluetoothAdapter mBluetoothAdapter;
 
     @Override
     public void onCreate() {
         super.onCreate();
 
-        // Make single instance.
-        mInstance = BluetoothGPS.this;
-
         // Start device connect service.
         startService(BroadcastHelper.getConnectServerIntent(BluetoothGPS.this));
 
         // Start provider service.
-        startService(BroadcastHelper.getProviderServerIntent(BluetoothGPS.this, GPS_PROVIDER));
+//        startService(BroadcastHelper.getProviderServerIntent(BluetoothGPS.this, GPS_PROVIDER));
+
+        mBluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
     }
 
-    public static UUID getUUID() {
-        return UUID.fromString(BluetoothGPS.UUID_STRING);
+
+    public boolean isSupported() {
+        return (mBluetoothAdapter != null);
     }
+
+
+    public boolean isEnabled() {
+        if (isSupported()) {
+            return mBluetoothAdapter.isEnabled();
+        }
+
+        return false;
+    }
+
+
+    public Set<BluetoothDevice> getPairedDevices() {
+        if (isSupported()) {
+            return mBluetoothAdapter.getBondedDevices();
+        }
+
+        return null;
+    }
+
 
     public SharedPreferences getSharedPreferences() {
         return PreferenceManager.getDefaultSharedPreferences(BluetoothGPS.this);
     }
+
 
     public static IntentFilter getIntentFilter() {
         IntentFilter intentFilter = new IntentFilter();
@@ -86,14 +113,38 @@ public class BluetoothGPS extends Application {
         return intentFilter;
     }
 
-    public static UUID getUUID(BluetoothDevice device) {
-        ParcelUuid[] uuids = device.getUuids();
-        if (uuids.length > 0) {
-            for (int i = 0; i < uuids.length; i++) {
-                return uuids[i].getUuid();
-            }
+
+    /**
+     * Detect whether GPS Hardware is supported
+     *
+     * @return if supported return true
+     */
+    protected boolean isGPSSupported() {
+        return getPackageManager().hasSystemFeature(PackageManager.FEATURE_LOCATION_GPS);
+    }
+
+
+    public BluetoothDevice getRemoteDevice(String address) {
+        if (BluetoothAdapter.checkBluetoothAddress(address)) {
+            return mBluetoothAdapter.getRemoteDevice(address);
         }
 
-        return getUUID();
+        return null;
+    }
+
+    public void connect(BluetoothDevice device) {
+        Intent intent = new Intent(ConnectService.ACTION_CONNECT);
+        intent.putExtra(EXTRA_DEVICE, device);
+        sendBroadcast(intent);
+    }
+
+    public void disconnect() {
+        sendBroadcast(new Intent(ConnectService.ACTION_DISCONNECT));
+    }
+
+    @Override
+    public void onTerminate() {
+        super.onTerminate();
+        disconnect();
     }
 }

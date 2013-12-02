@@ -12,31 +12,30 @@ import com.gracecode.android.btgps.helper.BroadcastHelper;
 import com.gracecode.android.btgps.helper.UIHelper;
 import com.gracecode.android.btgps.serivce.ConnectService;
 import com.gracecode.android.btgps.ui.fragment.ControlFragment;
-import com.gracecode.android.btgps.ui.fragment.StatusFragment;
+import com.gracecode.android.btgps.ui.fragment.PrefControlFragment;
 
 public class MainActivity extends BaseActivity {
     private static final int REQUEST_ENABLE_BLUETOOTH = 999;
     private BluetoothAdapter mBluetoothAdapter;
     private ControlFragment mControlFragment;
+    private PrefControlFragment mPrefControlFragment;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_main);
+        //setContentView(R.layout.activity_main);
 
-        mBluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
-        if (mBluetoothAdapter == null) {
+        if (!mBluetoothGPS.isSupported()) {
             // The device does not support Bluetooth
             UIHelper.showToast(MainActivity.this, getString(R.string.no_bluetooth));
             finish();
         }
 
+//        mControlFragment = new ControlFragment();
 
-        mControlFragment = new ControlFragment();
-
+        mPrefControlFragment = new PrefControlFragment();
         getFragmentManager().beginTransaction()
-                .replace(R.id.fragment_control, mControlFragment)
-                .replace(R.id.fragment_status, new StatusFragment())
+                .replace(android.R.id.content, mPrefControlFragment)
                 .commit();
     }
 
@@ -44,7 +43,7 @@ public class MainActivity extends BaseActivity {
     protected void onStart() {
         super.onStart();
 
-        if (!mBluetoothAdapter.isEnabled()) {
+        if (!mBluetoothGPS.isEnabled()) {
             Intent enableBtIntent = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
             startActivityForResult(enableBtIntent, REQUEST_ENABLE_BLUETOOTH);
         }
@@ -56,9 +55,9 @@ public class MainActivity extends BaseActivity {
             if (iBinder instanceof ConnectService.SimpleBinder) {
                 ConnectService.SimpleBinder binder = (ConnectService.SimpleBinder) iBinder;
                 if (binder.isConnected()) {
-                    mControlFragment.markConnected(binder.getDevice());
+                    mPrefControlFragment.markConnected();
                 } else {
-                    mControlFragment.markDisConnected();
+                    mPrefControlFragment.markDisConnected();
                 }
             }
         }

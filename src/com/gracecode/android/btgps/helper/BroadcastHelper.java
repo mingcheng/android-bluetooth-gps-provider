@@ -16,11 +16,6 @@ public final class BroadcastHelper {
                 .putExtra(BluetoothGPS.EXTRA_DEVICE, device));
     }
 
-    public static void sendDeviceConnectFailedBroadcast(Context context, BluetoothDevice device) {
-        context.sendBroadcast(new Intent()
-                .setAction(BluetoothGPS.ACTION_DEVICE_CONNECT_FAILED)
-                .putExtra(BluetoothGPS.EXTRA_DEVICE, device));
-    }
 
     public static void sendDeviceDisconnectedBroadcast(Context context) {
         context.sendBroadcast(new Intent()
@@ -40,18 +35,6 @@ public final class BroadcastHelper {
         context.sendBroadcast(new Intent()
                 .setAction(BluetoothGPS.ACTION_UPDATE_LOCATION)
                 .putExtra(BluetoothGPS.EXTRA_LOCATION, location));
-    }
-
-    public static void sendRemoveProviderBroadcast(Context context, String provider) {
-        context.sendBroadcast(new Intent()
-                .setAction(BluetoothGPS.ACTION_PROVIDER_REMOVE)
-                .putExtra(BluetoothGPS.EXTRA_PROVIDER, provider));
-    }
-
-    public static void sendAddProviderBroadcast(Context context, String provider) {
-        context.sendBroadcast(new Intent()
-                .setAction(BluetoothGPS.ACTION_PROVIDER_ADD)
-                .putExtra(BluetoothGPS.EXTRA_PROVIDER, provider));
     }
 
     public static void sendSentenceUpdateBroadcast(Context context, String sentence) {

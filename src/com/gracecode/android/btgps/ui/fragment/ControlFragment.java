@@ -14,7 +14,6 @@ import android.view.ViewGroup;
 import android.widget.*;
 import com.gracecode.android.btgps.BluetoothGPS;
 import com.gracecode.android.btgps.R;
-import com.gracecode.android.btgps.helper.BroadcastHelper;
 import com.gracecode.android.btgps.helper.UIHelper;
 import com.gracecode.android.btgps.serivce.ConnectService;
 import com.gracecode.android.btgps.serivce.ProviderService;
@@ -172,10 +171,10 @@ public class ControlFragment extends Fragment implements View.OnClickListener {
         }
 
         getActivity().registerReceiver(mStatusReceiver, BluetoothGPS.getIntentFilter());
-        getActivity().bindService(
-                BroadcastHelper.getProviderServerIntent(getActivity(), null),
-                connection,
-                Context.BIND_AUTO_CREATE);
+//        getActivity().bindService(
+//                BroadcastHelper.getProviderServerIntent(getActivity(), null),
+//                connection,
+//                Context.BIND_AUTO_CREATE);
     }
 
 

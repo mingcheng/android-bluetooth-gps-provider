@@ -76,11 +76,15 @@ public class ProviderService extends Service implements GpsStatus.NmeaListener {
 
     public void addProvider(String provider) {
         if (!mProviderSet.contains(provider)) {
-            mProviderSet.add(provider);
-            mLocationManager.addTestProvider(provider,
-                    false, false, false, false, true, true, true,
-                    Criteria.POWER_LOW, Criteria.ACCURACY_FINE);
+            try {
+                mLocationManager.addTestProvider(provider,
+                        false, false, false, false, true, true, true,
+                        Criteria.POWER_LOW, Criteria.ACCURACY_FINE);
 
+                mProviderSet.add(provider);
+            } catch (RuntimeException e) {
+                e.printStackTrace();
+            }
             setProviderEnabled(provider, true);
             Logger.v("Added '" + provider + "' location provider.");
         } else {
@@ -177,7 +181,7 @@ public class ProviderService extends Service implements GpsStatus.NmeaListener {
 
     @Override
     public void onNmeaReceived(long timestamp, String sentence) {
-       // Logger.v(sentence);
+        // Logger.v(sentence);
     }
 
     public class SimpleBinder extends Binder {

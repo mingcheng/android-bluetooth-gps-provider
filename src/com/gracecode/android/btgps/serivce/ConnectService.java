@@ -4,131 +4,81 @@ import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.app.Service;
 import android.bluetooth.BluetoothDevice;
-import android.bluetooth.BluetoothSocket;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
-import android.content.pm.PackageManager;
+import android.content.SharedPreferences;
 import android.location.Location;
-import android.location.LocationManager;
 import android.os.Binder;
 import android.os.IBinder;
 import android.support.v4.app.NotificationCompat;
 import com.gracecode.android.btgps.BluetoothGPS;
 import com.gracecode.android.btgps.R;
 import com.gracecode.android.btgps.helper.BroadcastHelper;
-import com.gracecode.android.btgps.helper.UIHelper;
+import com.gracecode.android.btgps.thread.ConnectThread;
 import com.gracecode.android.btgps.ui.MainActivity;
 import com.gracecode.android.btgps.util.Logger;
-import net.sf.marineapi.nmea.event.SentenceEvent;
-import net.sf.marineapi.nmea.event.SentenceListener;
-import net.sf.marineapi.nmea.io.SentenceReader;
-import net.sf.marineapi.nmea.sentence.Sentence;
-import net.sf.marineapi.provider.HeadingProvider;
-import net.sf.marineapi.provider.PositionProvider;
-import net.sf.marineapi.provider.SatelliteInfoProvider;
-import net.sf.marineapi.provider.event.HeadingEvent;
-import net.sf.marineapi.provider.event.PositionEvent;
-import net.sf.marineapi.provider.event.ProviderListener;
-import net.sf.marineapi.provider.event.SatelliteInfoEvent;
-
-import java.io.IOException;
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
-import java.util.Date;
-import java.util.UUID;
 
 public class ConnectService extends Service {
     public static final String ACTION_CONNECT = "com.gracecode.btgps.service.connect";
     public static final String ACTION_DISCONNECT = "com.gracecode.btgps.service.disconnect";
     private static final int NOTIFY_ID = 0x314159;
 
+    private BluetoothGPS mBluetoothGPS;
     private ConnectThread mConnectThread;
-    private NotificationManager mNotificationManager;
-    private NotificationCompat.Builder mNotification;
-
+    private SharedPreferences mSharedPreferences;
 
     /**
-     * Detect whether GPS Hardware is supported
+     * Detect whether device is connected.
      *
-     * @return if supported return true
+     * @return boolean
      */
-    protected boolean isGPSHardwareSupported() {
-        return getPackageManager().hasSystemFeature(PackageManager.FEATURE_LOCATION_GPS);
+    private boolean isConnected() {
+        return (mConnectThread != null) && mConnectThread.isConnected();
     }
 
+    /**
+     * ReadNmeaTask Status Changed Listener
+     */
+    private ConnectThread.OnStatusChangeListener mOnStatusChangedListener =
+            new ConnectThread.OnStatusChangeListener() {
+                @Override
+                public void onConnected() {
+                    BroadcastHelper.sendDeviceConnectedBroadcast(ConnectService.this, mConnectThread.getDevice());
+                    notifyRunning();
+                }
 
-    private class SatelliteInfoListener implements ProviderListener<SatelliteInfoEvent> {
-        @Override
-        public void providerUpdate(SatelliteInfoEvent event) {
+                @Override
+                public void onConnectedFailed(int retries) {
+                }
 
-//            Logger.v(event.toString());
-        }
-    }
+                @Override
+                public void onDisConnected() {
+                    BroadcastHelper.sendDeviceDisconnectedBroadcast(ConnectService.this);
+                    clearRunningNotification();
+                }
 
+                @Override
+                public void onReceivePosition(Location location) {
+                }
 
-    private class PositionListener implements ProviderListener<PositionEvent> {
-        private SimpleDateFormat mSimpleDateFormatter
-                = new SimpleDateFormat("yyyy-MM-dd 'at' HH:mm:ssZ");
+                @Override
+                public void onReceiveSentence(String sentence) {
+                    Logger.v(sentence);
+                }
 
-        /**
-         * Convert PositionEvent's time to timestamp.
-         *
-         * @param event PositionEvent
-         * @return UNIX Timestamp
-         */
-        private long getTimestampFromPositionEvent(PositionEvent event) {
-            Date date = new Date();
-            try {
-                date = mSimpleDateFormatter.parse(
-                        event.getDate().toISO8601() + " at " + event.getTime().toISO8601());
-            } catch (ParseException e) {
-                e.printStackTrace();
-            }
+                @Override
+                public void onReadingPaused() {
+                }
 
-            return date.getTime();
-        }
+                @Override
+                public void onReadingStarted() {
+                }
 
-
-        /**
-         * Convert PositionEvent To Android Location
-         *
-         * @param event PositionEvent from NMEA
-         * @return Android's Location Class
-         * @see <url>https://en.wikipedia.org/wiki/Knot_(unit)</url>
-         */
-        private Location convertPositionEvent2Location(PositionEvent event) {
-            Location location = new Location(BluetoothGPS.GPS_PROVIDER);
-
-            // position
-            location.setLongitude(event.getPosition().getLongitude());
-            location.setLatitude(event.getPosition().getLatitude());
-            location.setAltitude(event.getPosition().getAltitude());
-
-            // movement
-            location.setBearing((float) (event.getCourse() * 1f));
-            location.setSpeed((float) (event.getSpeed() * 0.514444f)); // convert knot to m/s
-
-            // signal
-            location.setTime(getTimestampFromPositionEvent(event));
-            location.setAccuracy(event.getFixQuality().toInt());
-
-            return location;
-        }
-
-        @Override
-        public void providerUpdate(PositionEvent event) {
-            Location location = convertPositionEvent2Location(event);
-            BroadcastHelper.sendLocationUpdateBroadcast(ConnectService.this, location);
-        }
-    }
-
-    private class HeadingListener implements ProviderListener<HeadingEvent> {
-        @Override
-        public void providerUpdate(HeadingEvent headingEvent) {
-            //Logger.v(headingEvent.toString());
-        }
-    }
+                @Override
+                public void onReadingStoped() {
+                }
+            };
 
 
     /**
@@ -136,124 +86,10 @@ public class ConnectService extends Service {
      */
     public class SimpleBinder extends Binder {
         public boolean isConnected() {
-            return (mConnectThread != null) && mConnectThread.isConnected();
-        }
-
-        public BluetoothDevice getDevice() {
-            if (mConnectThread != null) {
-                return mConnectThread.getDevice();
-            }
-
-            return null;
+            return ConnectService.this.isConnected();
         }
     }
-
     private SimpleBinder mSimpleBinder = new SimpleBinder();
-
-    private class ConnectThread extends Thread implements SentenceListener {
-        private BluetoothDevice mBluetoothDevice;
-        private BluetoothSocket mBluetoothDeviceSocket;
-        private SentenceReader mSentenceReader;
-
-        public ConnectThread(BluetoothDevice device) {
-            mBluetoothDevice = device;
-        }
-
-        @Override
-        public void run() {
-            try {
-                UUID uuid = BluetoothGPS.getUUID(mBluetoothDevice);
-                if (false) {
-                    mBluetoothDeviceSocket = mBluetoothDevice.createRfcommSocketToServiceRecord(uuid);
-                } else {
-                    mBluetoothDeviceSocket = mBluetoothDevice.createInsecureRfcommSocketToServiceRecord(uuid);
-                }
-
-                // Start connect
-                mBluetoothDeviceSocket.connect();
-                if (mBluetoothDeviceSocket.isConnected()) {
-                    mSentenceReader = new SentenceReader(mBluetoothDeviceSocket.getInputStream());
-                    mSentenceReader.addSentenceListener(ConnectThread.this);
-
-                    new SatelliteInfoProvider(mSentenceReader).addListener(new SatelliteInfoListener());
-                    new PositionProvider(mSentenceReader).addListener(new PositionListener());
-                    new HeadingProvider(mSentenceReader).addListener(new HeadingListener());
-
-                    mSentenceReader.start();
-                    notifyRunning();
-                    BroadcastHelper.sendDeviceConnectedBroadcast(ConnectService.this, mBluetoothDevice);
-                    Logger.i("Bluetooth device '" + mBluetoothDevice.getName() + "' is connected.");
-
-                    if (!isGPSHardwareSupported() || true) {
-                        Logger.i("No GPS hardware supported, added as default provider.");
-                        BroadcastHelper.sendAddProviderBroadcast(ConnectService.this, LocationManager.GPS_PROVIDER);
-                    }
-                } else {
-                    throw new IOException("Socket not ready or maybe is not NMEA device.");
-                }
-            } catch (IOException e) {
-                BroadcastHelper.sendDeviceConnectFailedBroadcast(ConnectService.this, mBluetoothDevice);
-                Logger.e(e.getMessage());
-                close();
-            }
-        }
-
-        public boolean isConnected() {
-            return (mBluetoothDeviceSocket != null) && mBluetoothDeviceSocket.isConnected();
-        }
-
-        public void close() {
-            try {
-                if (mSentenceReader != null) {
-                    mSentenceReader.stop();
-                    mSentenceReader = null;
-                }
-
-                mBluetoothDeviceSocket.close();
-                Logger.i("Bluetooth device '" + mBluetoothDevice.getName() + "' is closed.");
-            } catch (IOException e) {
-                e.printStackTrace();
-            } catch (RuntimeException e) {
-                e.printStackTrace();
-            } finally {
-                mBluetoothDeviceSocket = null;
-                clearNotification();
-                BroadcastHelper.sendDeviceDisconnectedBroadcast(ConnectService.this);
-            }
-        }
-
-
-        @Override
-        public void readingPaused() {
-            Logger.w("Sentence reader is paused.");
-        }
-
-        @Override
-        public void readingStarted() {
-            Logger.i("Sentence reader is started.");
-        }
-
-        @Override
-        public void readingStopped() {
-            Logger.e("Sentence reader is stopped.");
-        }
-
-        @Override
-        public void sentenceRead(SentenceEvent event) {
-            Sentence sentence = event.getSentence();
-            if (sentence.isValid()) {
-                BroadcastHelper.sendSentenceUpdateBroadcast(ConnectService.this, sentence.toSentence());
-            }
-        }
-
-        public String getDeviceName() {
-            return mBluetoothDevice.getName();
-        }
-
-        public BluetoothDevice getDevice() {
-            return mBluetoothDevice;
-        }
-    }
 
 
     private BroadcastReceiver mBluetoothDeviceReceiver = new BroadcastReceiver() {
@@ -261,50 +97,41 @@ public class ConnectService extends Service {
         public void onReceive(Context context, Intent intent) {
             switch (intent.getAction()) {
                 case ConnectService.ACTION_CONNECT:
-                    try {
-                        BluetoothDevice device = intent.getParcelableExtra(BluetoothGPS.EXTRA_DEVICE);
-                        if (device != null) {
-                            connect(device);
-                        }
-                    } catch (NullPointerException e) {
-                        e.printStackTrace();
+                    BluetoothDevice device = intent.getParcelableExtra(BluetoothGPS.EXTRA_DEVICE);
+                    if (device != null) {
+                        connect(device);
                     }
                     break;
 
                 case ConnectService.ACTION_DISCONNECT:
-                case BluetoothGPS.ACTION_DEVICE_CONNECT_FAILED:
-                case BluetoothDevice.ACTION_ACL_DISCONNECTED:
                     disconnect();
-                    BroadcastHelper.sendRemoveProviderBroadcast(ConnectService.this, LocationManager.GPS_PROVIDER);
-                    clearNotification();
-
-                    if (intent.getAction().equals(BluetoothGPS.ACTION_DEVICE_CONNECT_FAILED)) {
-                        UIHelper.showToast(ConnectService.this, getString(R.string.connect_failed));
-                    }
                     break;
             }
         }
     };
 
 
-    private void connect(BluetoothDevice device) {
+    synchronized private void connect(BluetoothDevice device) {
         if (mConnectThread != null) {
-            Logger.w("Close '" + mConnectThread.getDeviceName() + "' for connect new device.");
             disconnect();
         }
 
         Logger.i("Connecting '" + device.getName() + "'");
-        mConnectThread = new ConnectThread(device);
+        mConnectThread = new ConnectThread(ConnectService.this, device, mOnStatusChangedListener);
         mConnectThread.start();
-
     }
 
-    private void disconnect() {
+
+    synchronized private void disconnect() {
         if (mConnectThread != null) {
-            mConnectThread.close();
+            mConnectThread.disconnect();
             mConnectThread = null;
         }
     }
+
+
+    private NotificationManager mNotificationManager;
+    private NotificationCompat.Builder mNotification;
 
     @Override
     public void onCreate() {
@@ -326,6 +153,9 @@ public class ConnectService extends Service {
                 .setTicker(getString(R.string.is_running))
                 .addAction(R.drawable.ic_stop, getString(R.string.stop),
                         getStopPendingIntent());
+
+        mBluetoothGPS = (BluetoothGPS) getApplication();
+        mSharedPreferences = mBluetoothGPS.getSharedPreferences();
     }
 
 
@@ -342,7 +172,7 @@ public class ConnectService extends Service {
         mNotificationManager.notify(NOTIFY_ID, mNotification.build());
     }
 
-    public void clearNotification() {
+    public void clearRunningNotification() {
         mNotificationManager.cancel(NOTIFY_ID);
     }
 
@@ -375,6 +205,7 @@ public class ConnectService extends Service {
 
         super.onDestroy();
     }
+
 
     @Override
     public IBinder onBind(Intent intent) {
