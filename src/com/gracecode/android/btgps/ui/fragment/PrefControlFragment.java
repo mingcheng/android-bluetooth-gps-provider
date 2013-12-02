@@ -68,14 +68,16 @@ public class PrefControlFragment extends PreferenceFragment
 
     @Override
     public boolean onPreferenceTreeClick(PreferenceScreen preferenceScreen, Preference preference) {
-        switch (preference.getKey()) {
-            case BluetoothGPS.PREF_START_GPS:
-                if (mSharedPreferences.getBoolean(BluetoothGPS.PREF_START_GPS, true)) {
-                    mBluetoothGPS.connect(getBluetoothDeviceFromPref());
-                } else {
-                    mBluetoothGPS.disconnect();
-                }
-                break;
+        if (preference != null) {
+            switch (preference.getKey()) {
+                case BluetoothGPS.PREF_START_GPS:
+                    if (mSharedPreferences.getBoolean(BluetoothGPS.PREF_START_GPS, true)) {
+                        mBluetoothGPS.connect(getBluetoothDeviceFromPref());
+                    } else {
+                        mBluetoothGPS.disconnect();
+                    }
+                    break;
+            }
         }
 
         return super.onPreferenceTreeClick(preferenceScreen, preference);
@@ -91,6 +93,10 @@ public class PrefControlFragment extends PreferenceFragment
             case BluetoothGPS.PREF_CONNECTION_RETRIES:
                 updateMaxConnRetries();
                 break;
+
+            case BluetoothGPS.PREF_MOCK_GPS_NAME:
+                updateProviderName();
+                break;
         }
     }
 
@@ -101,13 +107,16 @@ public class PrefControlFragment extends PreferenceFragment
         updateDevicePreferenceList();
         updateDevicePreferenceSummary();
         updateMaxConnRetries();
+        updateProviderName();
     }
+
 
     @Override
     public void onResume() {
         super.onResume();
         getActivity().registerReceiver(mStatusReceiver, BluetoothGPS.getIntentFilter());
     }
+
 
     @Override
     public void onPause() {
@@ -163,5 +172,13 @@ public class PrefControlFragment extends PreferenceFragment
     private BluetoothDevice getBluetoothDeviceFromPref() {
         String deviceAddress = mSharedPreferences.getString(BluetoothGPS.PREF_BLUETOOTH_DEVICE, null);
         return mBluetoothGPS.getRemoteDevice(deviceAddress);
+    }
+
+
+    private void updateProviderName() {
+        Preference prefMaxConnRetries = findPreference(BluetoothGPS.PREF_MOCK_GPS_NAME);
+        String prodiverName = mSharedPreferences.getString(BluetoothGPS.PREF_MOCK_GPS_NAME,
+                getString(R.string.defaultMockGpsName));
+        prefMaxConnRetries.setSummary(getString(R.string.pref_mock_gps_name_summary, prodiverName));
     }
 }

@@ -8,7 +8,6 @@ import android.preference.PreferenceManager;
 import com.gracecode.android.btgps.BluetoothGPS;
 import com.gracecode.android.btgps.R;
 import com.gracecode.android.btgps.task.ReadNmeaTask;
-import com.gracecode.android.btgps.util.Logger;
 
 import java.io.IOException;
 import java.util.UUID;
@@ -95,7 +94,7 @@ public class ConnectThread extends Thread {
                         connect();
                     }
                 } else {
-                    Logger.v("Device '" + mBluetoothDevice.getName() + "' is connected.");
+//                    Logger.v("Device '" + mBluetoothDevice.getName() + "' is connected.");
                     mRetries = 0;
                 }
 
@@ -126,12 +125,13 @@ public class ConnectThread extends Thread {
             mListener.onConnected();
         } catch (IOException e) {
             try {
-                Logger.e("Connect error, remain " + (getMaxRetries() - mRetries) + " retires.");
                 if (mReadNmeaTask != null) {
                     mReadNmeaTask.disconnect();
                 }
+
+                mBluetoothDeviceSocket = null;
             } finally {
-                mListener.onConnectedFailed(mRetries++);
+                mListener.onConnectedFailed(++mRetries);
             }
         }
     }

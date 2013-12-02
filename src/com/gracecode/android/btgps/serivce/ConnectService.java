@@ -9,6 +9,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.location.Location;
+import android.location.LocationManager;
 import android.os.Binder;
 import android.os.IBinder;
 import android.support.v4.app.NotificationCompat;
@@ -42,29 +43,51 @@ public class ConnectService extends Service {
      */
     private ConnectThread.OnStatusChangeListener mOnStatusChangedListener =
             new ConnectThread.OnStatusChangeListener() {
+
+                private boolean isEnableProvider() {
+                    return mSharedPreferences.getBoolean(BluetoothGPS.PREF_FORCE_ENABLE_PROVIDER, true);
+                }
+
+                private String getProviderName() {
+                    if (mSharedPreferences.getBoolean(BluetoothGPS.PREF_REPLACE_STD_GPS, false)) {
+                        return LocationManager.GPS_PROVIDER;
+                    }
+
+                    return mSharedPreferences.getString(BluetoothGPS.PREF_GPS_LOCATION_PROVIDER,
+                            getString(R.string.defaultMockGpsName));
+                }
+
                 @Override
                 public void onConnected() {
                     BroadcastHelper.sendDeviceConnectedBroadcast(ConnectService.this, mConnectThread.getDevice());
+                    if (isEnableProvider()) {
+                        startService(BroadcastHelper.getProviderServerIntent(ConnectService.this, getProviderName()));
+                    }
                     notifyRunning();
                 }
 
                 @Override
                 public void onConnectedFailed(int retries) {
+                    Logger.e("Connect error, has reconnect for " + (retries + 1) + " " + "times.");
                 }
 
                 @Override
                 public void onDisConnected() {
                     BroadcastHelper.sendDeviceDisconnectedBroadcast(ConnectService.this);
+                    if (isEnableProvider()) {
+                        stopService(BroadcastHelper.getProviderServerIntent(ConnectService.this, getProviderName()));
+                    }
                     clearRunningNotification();
                 }
 
                 @Override
                 public void onReceivePosition(Location location) {
+                    BroadcastHelper.sendLocationUpdateBroadcast(ConnectService.this, location);
                 }
 
                 @Override
                 public void onReceiveSentence(String sentence) {
-                    Logger.v(sentence);
+                    BroadcastHelper.sendSentenceUpdateBroadcast(ConnectService.this, sentence);
                 }
 
                 @Override
@@ -89,6 +112,7 @@ public class ConnectService extends Service {
             return ConnectService.this.isConnected();
         }
     }
+
     private SimpleBinder mSimpleBinder = new SimpleBinder();
 
 

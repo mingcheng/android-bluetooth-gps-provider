@@ -4,7 +4,10 @@ import android.app.Service;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
-import android.location.*;
+import android.location.Criteria;
+import android.location.Location;
+import android.location.LocationManager;
+import android.location.LocationProvider;
 import android.os.Binder;
 import android.os.Bundle;
 import android.os.IBinder;
@@ -17,7 +20,7 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Set;
 
-public class ProviderService extends Service implements GpsStatus.NmeaListener {
+public class ProviderService extends Service {
     private LocationManager mLocationManager;
     private Set<String> mProviderSet = new HashSet<>();
 
@@ -33,6 +36,10 @@ public class ProviderService extends Service implements GpsStatus.NmeaListener {
                     if (location != null) {
                         setAllProviderLocation(location);
                     }
+                    break;
+
+                case BluetoothGPS.ACTION_UPDATE_SENTENCE:
+                    Logger.v(intent.getStringExtra(BluetoothGPS.EXTRA_SENTENCE));
                     break;
 
                 case BluetoothGPS.ACTION_PROVIDER_ADD:
@@ -70,7 +77,6 @@ public class ProviderService extends Service implements GpsStatus.NmeaListener {
         super.onCreate();
         mLocationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
         registerReceiver(mLocationReceiver, BluetoothGPS.getIntentFilter());
-        mLocationManager.addNmeaListener(ProviderService.this);
     }
 
 
@@ -166,7 +172,6 @@ public class ProviderService extends Service implements GpsStatus.NmeaListener {
     private void clean() throws RuntimeException {
         removeAllProvider();
         unregisterReceiver(mLocationReceiver);
-        mLocationManager.removeNmeaListener(ProviderService.this);
     }
 
     @Override
@@ -177,11 +182,6 @@ public class ProviderService extends Service implements GpsStatus.NmeaListener {
             e.printStackTrace();
         }
         super.onDestroy();
-    }
-
-    @Override
-    public void onNmeaReceived(long timestamp, String sentence) {
-        // Logger.v(sentence);
     }
 
     public class SimpleBinder extends Binder {

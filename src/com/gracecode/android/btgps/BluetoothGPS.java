@@ -70,7 +70,7 @@ public class BluetoothGPS extends Application {
         startService(BroadcastHelper.getConnectServerIntent(BluetoothGPS.this));
 
         // Start provider service.
-//        startService(BroadcastHelper.getProviderServerIntent(BluetoothGPS.this, GPS_PROVIDER));
+//        startService();
 
         mBluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
     }
