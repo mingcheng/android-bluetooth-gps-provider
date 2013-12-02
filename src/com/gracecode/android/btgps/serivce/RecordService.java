@@ -60,7 +60,7 @@ public class RecordService extends Service {
         java.text.DateFormat mDateFormat = DateFormat.getDateFormat(getApplicationContext());
         java.text.DateFormat mTimeFormat = DateFormat.getTimeFormat(getApplicationContext());
         Date now = new Date(System.currentTimeMillis());
-        String filename = mDateFormat.format(now) + " " + mTimeFormat.format(now);
+        String filename = mDateFormat.format(now) + "_" + mTimeFormat.format(now);
 
         File recordFile = new File(getRecordDirectory(), filename + ".nmea");
         if (!recordFile.exists()) {

@@ -23,11 +23,13 @@ import com.gracecode.android.btgps.util.Logger;
 public class ConnectService extends Service {
     public static final String ACTION_CONNECT = "com.gracecode.btgps.service.connect";
     public static final String ACTION_DISCONNECT = "com.gracecode.btgps.service.disconnect";
-    private static final int NOTIFY_ID = 0x314159;
+    private static final int RUNNING_NOTIFY_ID = 0x314159;
+    private static final int FAILED_NOTIFY_ID = 0x314159 * 2;
 
     private BluetoothGPS mBluetoothGPS;
     private ConnectThread mConnectThread;
     private SharedPreferences mSharedPreferences;
+    private NotificationCompat.Builder mConnectFailedNotification;
 
     /**
      * Detect whether device is connected.
@@ -73,11 +75,13 @@ public class ConnectService extends Service {
                     }
 
                     notifyRunning();
+                    clearFailedNotification();
                 }
 
                 @Override
                 public void onConnectedFailed(int retries) {
                     Logger.e("Connect error, has reconnect for " + retries + " times.");
+                    notifyFailed(retries);
                 }
 
                 @Override
@@ -92,11 +96,13 @@ public class ConnectService extends Service {
                     }
 
                     clearRunningNotification();
+                    clearFailedNotification();
                 }
+
 
                 @Override
                 public void onStartConnect() {
-
+//                    clearFailedNotification();
                 }
 
                 @Override
@@ -181,7 +187,7 @@ public class ConnectService extends Service {
 
 
     private NotificationManager mNotificationManager;
-    private NotificationCompat.Builder mNotification;
+    private NotificationCompat.Builder mRunningNotification;
 
     @Override
     public void onCreate() {
@@ -194,7 +200,7 @@ public class ConnectService extends Service {
                 new Intent(ConnectService.this, MainActivity.class),
                 Intent.FLAG_ACTIVITY_NEW_TASK);
 
-        mNotification = new NotificationCompat.Builder(ConnectService.this)
+        mRunningNotification = new NotificationCompat.Builder(ConnectService.this)
                 .setSmallIcon(R.drawable.ic_stat_running)
                 .setContentTitle(getString(R.string.is_running))
                 .setOngoing(true)
@@ -204,6 +210,12 @@ public class ConnectService extends Service {
                 .addAction(R.drawable.ic_stop, getString(R.string.stop),
                         getStopPendingIntent());
 
+        mConnectFailedNotification = new NotificationCompat.Builder(ConnectService.this)
+                .setSmallIcon(R.drawable.ic_stat_running)
+                .setContentTitle(getString(R.string.connect_failed))
+                .setContentIntent(intent)
+                .setTicker(getString(R.string.connect_failed));
+
         mBluetoothGPS = (BluetoothGPS) getApplication();
         mSharedPreferences = mBluetoothGPS.getSharedPreferences();
     }
@@ -212,20 +224,29 @@ public class ConnectService extends Service {
     private PendingIntent getStopPendingIntent() {
         return PendingIntent.getBroadcast(
                 ConnectService.this,
-                NOTIFY_ID,
+                RUNNING_NOTIFY_ID,
                 new Intent(ConnectService.ACTION_DISCONNECT),
                 PendingIntent.FLAG_UPDATE_CURRENT
         );
     }
 
+    private void notifyFailed(int retries) {
+        mConnectFailedNotification.setNumber(retries);
+        mConnectFailedNotification.setSubText("Reconnect for " + retries + " times.");
+        mNotificationManager.notify(FAILED_NOTIFY_ID, mConnectFailedNotification.build());
+    }
+
     public void notifyRunning() {
-        mNotificationManager.notify(NOTIFY_ID, mNotification.build());
+        mNotificationManager.notify(RUNNING_NOTIFY_ID, mRunningNotification.build());
     }
 
     public void clearRunningNotification() {
-        mNotificationManager.cancel(NOTIFY_ID);
+        mNotificationManager.cancel(RUNNING_NOTIFY_ID);
     }
 
+    private void clearFailedNotification() {
+        mNotificationManager.cancel(FAILED_NOTIFY_ID);
+    }
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
