@@ -39,15 +39,6 @@ public class MainActivity extends BaseActivity {
                 .commit();
     }
 
-    @Override
-    protected void onStart() {
-        super.onStart();
-
-        if (!mBluetoothGPS.isEnabled()) {
-            Intent enableBtIntent = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
-            startActivityForResult(enableBtIntent, REQUEST_ENABLE_BLUETOOTH);
-        }
-    }
 
     private ServiceConnection connection = new ServiceConnection() {
         @Override
@@ -68,9 +59,16 @@ public class MainActivity extends BaseActivity {
         }
     };
 
+
     @Override
     protected void onResume() {
         super.onResume();
+
+        if (!mBluetoothGPS.isEnabled()) {
+            Intent enableBtIntent = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
+            startActivityForResult(enableBtIntent, REQUEST_ENABLE_BLUETOOTH);
+        }
+
         bindService(BroadcastHelper.getConnectServerIntent(MainActivity.this),
                 connection, Context.BIND_AUTO_CREATE);
     }

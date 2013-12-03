@@ -104,18 +104,14 @@ public class PrefControlFragment extends PreferenceFragment
 
 
     @Override
-    public void onStart() {
-        super.onStart();
+    public void onResume() {
+        super.onResume();
+
         updateDevicePreferenceList();
         updateDevicePreferenceSummary();
         updateMaxConnRetries();
         updateProviderName();
-    }
 
-
-    @Override
-    public void onResume() {
-        super.onResume();
         getActivity().registerReceiver(mStatusReceiver, BluetoothGPS.getIntentFilter());
     }
 
@@ -125,6 +121,7 @@ public class PrefControlFragment extends PreferenceFragment
         super.onPause();
         getActivity().unregisterReceiver(mStatusReceiver);
     }
+
 
     /**
      * Update pared device for pref list.
@@ -142,8 +139,15 @@ public class PrefControlFragment extends PreferenceFragment
             i++;
         }
 
+
         prefDevices.setEntryValues(entryValues);
         prefDevices.setEntries(entries);
+
+        if (entryValues.length <= 0) {
+            prefDevices.setEnabled(false);
+        } else {
+            prefDevices.setEnabled(true);
+        }
     }
 
     /**
@@ -172,7 +176,8 @@ public class PrefControlFragment extends PreferenceFragment
 
 
     private BluetoothDevice getBluetoothDeviceFromPref() {
-        String deviceAddress = mSharedPreferences.getString(BluetoothGPS.PREF_BLUETOOTH_DEVICE, null);
+        String deviceAddress = mSharedPreferences.getString(
+                BluetoothGPS.PREF_BLUETOOTH_DEVICE, getString(android.R.string.unknownName));
         return mBluetoothGPS.getRemoteDevice(deviceAddress);
     }
 

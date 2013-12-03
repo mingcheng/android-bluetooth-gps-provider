@@ -59,11 +59,15 @@ public class ConnectThread extends Thread {
      * @return uuid
      */
     private UUID getUUID(BluetoothDevice device) {
-        ParcelUuid[] uuids = device.getUuids();
-        if (uuids.length > 0) {
-            for (int i = 0; i < uuids.length; i++) {
-                return uuids[i].getUuid();
+        try {
+            ParcelUuid[] uuids = device.getUuids();
+            if (uuids.length > 0) {
+                for (int i = 0; i < uuids.length; i++) {
+                    return uuids[i].getUuid();
+                }
             }
+        } catch (RuntimeException e) {
+            e.printStackTrace();
         }
 
         return getUUID();
@@ -125,10 +129,14 @@ public class ConnectThread extends Thread {
             // Start connect
             mBluetoothDeviceSocket.connect();
 
-            // Read NMEA Sentence
-            mReadNmeaTask = new ReadNmeaTask(mContext, mBluetoothDeviceSocket.getInputStream(), mListener);
-            mReadNmeaTask.run();
-            mListener.onConnected();
+            if (mBluetoothDeviceSocket.isConnected()) {
+                // Read NMEA Sentence
+                mReadNmeaTask = new ReadNmeaTask(mContext, mBluetoothDeviceSocket.getInputStream(), mListener);
+                mReadNmeaTask.run();
+                mListener.onConnected();
+            } else {
+                throw new IOException("Device doesn't connected.");
+            }
         } catch (IOException e) {
             try {
                 if (mReadNmeaTask != null) {
