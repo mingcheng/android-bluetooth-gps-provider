@@ -166,7 +166,6 @@
             android:dependency="@string/pref_start_gps_key"
             android:enabled="true"
             android:key="@string/pref_recording_key"
-            android:persistent="true"
             android:title="@string/pref_recording_title"
             android:summaryOn="@string/pref_recording_summary_on"
             android:summaryOff="@string/pref_recording_summary_off"/>

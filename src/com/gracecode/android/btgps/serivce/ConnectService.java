@@ -271,8 +271,8 @@ public class ConnectService extends Service {
             if (device != null) {
                 connect(device);
             }
-        } catch (NullPointerException e) {
-            e.printStackTrace();
+        } catch (RuntimeException e) {
+            Logger.e(e.getMessage());
         }
 
         registerReceiver(mBluetoothDeviceReceiver, BluetoothGPS.getIntentFilter());

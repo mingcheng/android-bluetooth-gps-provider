@@ -29,7 +29,8 @@ public class RecordService extends Service {
                     String sentence = intent.getStringExtra(BluetoothGPS.EXTRA_SENTENCE);
                     try {
                         mTrackRecordsWriter.write(sentence + "\n");
-                    } catch (IOException e) {
+                        Logger.v(sentence);
+                    } catch (IOException | RuntimeException e) {
                         e.printStackTrace();
                     }
                     break;
@@ -55,8 +56,8 @@ public class RecordService extends Service {
 
 
     private File getRecordFile() throws IOException {
-        java.text.DateFormat mDateFormat = DateFormat.getDateFormat(getApplicationContext());
-        java.text.DateFormat mTimeFormat = DateFormat.getTimeFormat(getApplicationContext());
+        java.text.DateFormat mDateFormat = DateFormat.getDateFormat(RecordService.this);
+        java.text.DateFormat mTimeFormat = DateFormat.getTimeFormat(RecordService.this);
         Date now = new Date(System.currentTimeMillis());
         String filename = mDateFormat.format(now) + "_" + mTimeFormat.format(now);
 
@@ -65,6 +66,7 @@ public class RecordService extends Service {
             recordFile.createNewFile();
         }
 
+        Logger.v("The record file path is " + recordFile.getAbsolutePath());
         return recordFile;
     }
 
@@ -79,6 +81,8 @@ public class RecordService extends Service {
             trackFileDirectory.delete();
         }
 
+        trackFileDirectory.mkdirs();
+        Logger.v("The record directory is " + trackFileDirectory.getAbsolutePath());
         return trackFileDirectory;
     }
 
@@ -97,11 +101,12 @@ public class RecordService extends Service {
             mTrackFile = getRecordFile();
             if (mTrackFile.canWrite()) {
                 mTrackRecordsWriter = new BufferedWriter(new FileWriter(mTrackFile));
+            } else {
+                throw new IOException("Track file is not writeable.");
             }
 
-            Logger.i("Recording file path is " + mTrackFile.getAbsolutePath());
-        } catch (IOException e) {
-            e.printStackTrace();
+        } catch (IOException | RuntimeException e) {
+            Logger.e(e.getMessage());
         }
 
         registerReceiver(mNMEAReceiver, new IntentFilter(BluetoothGPS.ACTION_UPDATE_SENTENCE));
@@ -119,7 +124,7 @@ public class RecordService extends Service {
             if (mTrackFile.length() == 0) {
                 mTrackFile.delete();
             }
-        } catch (IOException e) {
+        } catch (IOException | RuntimeException e) {
             e.printStackTrace();
         }
 
