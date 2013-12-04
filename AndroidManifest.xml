@@ -1,12 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-          package="com.gracecode.android.btgps"
+          xmlns:tools="http://schemas.android.com/tools" package="com.gracecode.android.btgps"
           android:versionCode="1"
           android:versionName="1.0">
 
     <uses-sdk
             android:targetSdkVersion="16"
-            android:minSdkVersion="11"/>
+            android:minSdkVersion="14"/>
 
     <uses-permission android:name="android.permission.BLUETOOTH"/>
     <uses-permission android:name="android.permission.BLUETOOTH_ADMIN"/>
@@ -39,7 +39,6 @@
         <service
                 android:name=".serivce.ProviderService"
                 android:description="@string/connect"/>
-
 
         <service
                 android:name=".serivce.RecordService"

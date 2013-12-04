@@ -43,6 +43,18 @@ public class BluetoothGPS extends Application {
     public static final String PREF_BLUETOOTH_DEVICE = "bluetoothDevice";
     public static final String PREF_ABOUT = "about";
 
+    public static final String PREF_SIRF_GPS = "sirfGps";
+    public static final String PREF_SIRF_ENABLE_GGA = "enableGGA";
+    public static final String PREF_SIRF_ENABLE_RMC = "enableRMC";
+    public static final String PREF_SIRF_ENABLE_GLL = "enableGLL";
+    public static final String PREF_SIRF_ENABLE_VTG = "enableVTG";
+    public static final String PREF_SIRF_ENABLE_GSA = "enableGSA";
+    public static final String PREF_SIRF_ENABLE_GSV = "enableGSV";
+    public static final String PREF_SIRF_ENABLE_ZDA = "enableZDA";
+    public static final String PREF_SIRF_ENABLE_SBAS = "enableSBAS";
+    public static final String PREF_SIRF_ENABLE_NMEA = "enableNMEA";
+    public static final String PREF_SIRF_ENABLE_STATIC_NAVIGATION = "enableStaticNavigation";
+
     private static final String[] ACTION_ALL = new String[]{
             BluetoothDevice.ACTION_ACL_CONNECTED,
             BluetoothDevice.ACTION_ACL_DISCONNECTED,

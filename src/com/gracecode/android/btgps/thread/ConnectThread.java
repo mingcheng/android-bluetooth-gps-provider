@@ -1,22 +1,34 @@
 package com.gracecode.android.btgps.thread;
 
+import android.annotation.TargetApi;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothSocket;
 import android.content.*;
+import android.os.Build;
 import android.os.ParcelUuid;
 import android.preference.PreferenceManager;
 import com.gracecode.android.btgps.BluetoothGPS;
 import com.gracecode.android.btgps.R;
 import com.gracecode.android.btgps.task.ReadNmeaTask;
 import com.gracecode.android.btgps.util.Logger;
+import com.gracecode.android.btgps.util.SirfCommander;
 
 import java.io.IOException;
-import java.io.OutputStreamWriter;
 import java.util.UUID;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 
 public class ConnectThread extends Thread {
+    public static final String PREF_SIRF_GPS = BluetoothGPS.PREF_SIRF_GPS;
+    public static final String PREF_SIRF_ENABLE_GGA = BluetoothGPS.PREF_SIRF_ENABLE_GGA;
+    public static final String PREF_SIRF_ENABLE_RMC = BluetoothGPS.PREF_SIRF_ENABLE_RMC;
+    public static final String PREF_SIRF_ENABLE_GLL = BluetoothGPS.PREF_SIRF_ENABLE_GLL;
+    public static final String PREF_SIRF_ENABLE_VTG = BluetoothGPS.PREF_SIRF_ENABLE_VTG;
+    public static final String PREF_SIRF_ENABLE_GSA = BluetoothGPS.PREF_SIRF_ENABLE_GSA;
+    public static final String PREF_SIRF_ENABLE_GSV = BluetoothGPS.PREF_SIRF_ENABLE_GSV;
+    public static final String PREF_SIRF_ENABLE_ZDA = BluetoothGPS.PREF_SIRF_ENABLE_ZDA;
+    public static final String PREF_SIRF_ENABLE_SBAS = BluetoothGPS.PREF_SIRF_ENABLE_SBAS;
+    public static final String PREF_SIRF_ENABLE_NMEA = BluetoothGPS.PREF_SIRF_ENABLE_NMEA;
+    public static final String PREF_SIRF_ENABLE_STATIC_NAVIGATION = BluetoothGPS.PREF_SIRF_ENABLE_STATIC_NAVIGATION;
+
     private final Context mContext;
     private final OnStatusChangeListener mListener;
     private final BluetoothDevice mBluetoothDevice;
@@ -26,8 +38,7 @@ public class ConnectThread extends Thread {
     private int mRetries = 0;
     private BluetoothSocket mBluetoothDeviceSocket;
     private ReadNmeaTask mReadNmeaTask;
-    private ExecutorService mNotificationPool;
-    private OutputStreamWriter mNmeaCommandWriter;
+    private SirfCommander mSirfCommander;
 
 
     public interface OnStatusChangeListener extends ReadNmeaTask.OnNmeaReadListener {
@@ -46,8 +57,6 @@ public class ConnectThread extends Thread {
         mBluetoothDevice = device;
         mListener = listener;
         mSharedPreferences = PreferenceManager.getDefaultSharedPreferences(context);
-
-        mNotificationPool = Executors.newSingleThreadExecutor();
     }
 
 
@@ -65,6 +74,7 @@ public class ConnectThread extends Thread {
      * @param device device
      * @return uuid
      */
+    @TargetApi(Build.VERSION_CODES.ICE_CREAM_SANDWICH_MR1)
     private UUID getUUID(BluetoothDevice device) {
         try {
             ParcelUuid[] uuids = device.getUuids();
@@ -137,8 +147,12 @@ public class ConnectThread extends Thread {
 
             if (mBluetoothDeviceSocket.isConnected()) {
 
-                mNmeaCommandWriter = new OutputStreamWriter(mBluetoothDeviceSocket.getOutputStream());
-
+                // Send Sirf Command
+                mSirfCommander = new SirfCommander(mContext, mBluetoothDeviceSocket.getOutputStream());
+                if (isSirfDevice()) {
+                    Logger.v("Make as Sirf GPS, Send some commands.");
+                    asSirfDevice();
+                }
 
                 // Read NMEA Sentence
                 mReadNmeaTask = new ReadNmeaTask(mContext, mBluetoothDeviceSocket.getInputStream(), mListener);
@@ -160,6 +174,48 @@ public class ConnectThread extends Thread {
         }
     }
 
+    private boolean isSirfDevice() {
+        return mSharedPreferences.contains(PREF_SIRF_GPS) && mSharedPreferences.getBoolean(PREF_SIRF_GPS, false);
+    }
+
+    private void asSirfDevice() {
+        if (mSharedPreferences.contains(PREF_SIRF_ENABLE_GLL)) {
+            mSirfCommander.enableNmeaGLL(mSharedPreferences.getBoolean(PREF_SIRF_ENABLE_GLL, false));
+        }
+        if (mSharedPreferences.contains(PREF_SIRF_ENABLE_VTG)) {
+            mSirfCommander.enableNmeaVTG(mSharedPreferences.getBoolean(PREF_SIRF_ENABLE_VTG, false));
+        }
+        if (mSharedPreferences.contains(PREF_SIRF_ENABLE_GSA)) {
+            mSirfCommander.enableNmeaGSA(mSharedPreferences.getBoolean(PREF_SIRF_ENABLE_GSA, false));
+        }
+        if (mSharedPreferences.contains(PREF_SIRF_ENABLE_GSV)) {
+            mSirfCommander.enableNmeaGSV(mSharedPreferences.getBoolean(PREF_SIRF_ENABLE_GSV, false));
+        }
+        if (mSharedPreferences.contains(PREF_SIRF_ENABLE_ZDA)) {
+            mSirfCommander.enableNmeaZDA(mSharedPreferences.getBoolean(PREF_SIRF_ENABLE_ZDA, false));
+        }
+        if (mSharedPreferences.contains(PREF_SIRF_ENABLE_STATIC_NAVIGATION)) {
+            mSirfCommander.enableStaticNavigation(mSharedPreferences.getBoolean(PREF_SIRF_ENABLE_STATIC_NAVIGATION, false));
+        } else if (mSharedPreferences.contains(PREF_SIRF_ENABLE_NMEA)) {
+            mSirfCommander.enableNMEA(mSharedPreferences.getBoolean(PREF_SIRF_ENABLE_NMEA, true));
+        }
+        if (mSharedPreferences.contains(PREF_SIRF_ENABLE_SBAS)) {
+            mSirfCommander.enableSBAS(mSharedPreferences.getBoolean(PREF_SIRF_ENABLE_SBAS, true));
+        }
+        mSirfCommander.sendNmeaCommand(getString(R.string.sirf_nmea_gga_on));
+        mSirfCommander.sendNmeaCommand(getString(R.string.sirf_nmea_rmc_on));
+        if (mSharedPreferences.contains(PREF_SIRF_ENABLE_GGA)) {
+            mSirfCommander.enableNmeaGGA(mSharedPreferences.getBoolean(PREF_SIRF_ENABLE_GGA, true));
+        }
+        if (mSharedPreferences.contains(PREF_SIRF_ENABLE_RMC)) {
+            mSirfCommander.enableNmeaRMC(mSharedPreferences.getBoolean(PREF_SIRF_ENABLE_RMC, true));
+        }
+    }
+
+    private String getString(int resId) {
+        return mContext.getString(resId);
+    }
+
     private void disconnect(boolean notify) {
         try {
             isKeepRunning = false;
@@ -169,7 +225,6 @@ public class ConnectThread extends Thread {
                 mReadNmeaTask = null;
             }
 
-            mNmeaCommandWriter.close();
             mBluetoothDeviceSocket.close();
         } catch (IOException e) {
             e.printStackTrace();
@@ -201,18 +256,7 @@ public class ConnectThread extends Thread {
 
     public boolean isConnected() {
         if ((mBluetoothDeviceSocket != null) && mBluetoothDeviceSocket.isConnected()) {
-            mNotificationPool.execute(new Runnable() {
-                @Override
-                public void run() {
-                    try {
-                        Logger.w("write, write!");
-                        mNmeaCommandWriter.write("$PSRF151,01*F");
-                        mNmeaCommandWriter.flush();
-                    } catch (Exception e) {
-                        mBluetoothDeviceSocket = null;
-                    }
-                }
-            });
+            mSirfCommander.sendNmeaCommand(getString(R.string.sirf_nmea_rmc_on));
             return true;
         } else {
             return false;

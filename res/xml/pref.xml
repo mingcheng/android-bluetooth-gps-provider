@@ -74,97 +74,94 @@
         <CheckBoxPreference
                 android:dependency="@string/pref_start_gps_key"
                 android:key="@string/pref_sirf_gps_key"
-                android:persistent="false"
-                android:defaultValue="false"
-                android:disableDependentsState="false"
+                android:checked="false"
                 android:title="@string/pref_sirf_gps_title"
                 android:summaryOn="@string/pref_sirf_gps_summary_on"
                 android:summaryOff="@string/pref_sirf_gps_summary_off"/>
-    </PreferenceCategory>
-
-    <PreferenceScreen
-            android:title="@string/pref_start_gps_params_title"
-            android:dependency="@string/pref_sirf_gps_key"
-            android:orderingFromXml="true"
-            android:shouldDisableView="true">
-        <PreferenceCategory
-                android:order="200"
+        <PreferenceScreen
+                android:title="@string/pref_start_gps_params_title"
+                android:dependency="@string/pref_sirf_gps_key"
                 android:orderingFromXml="true"
-                android:title="@string/pref_sirf_nmea_category_title">
-            <CheckBoxPreference
-                    android:key="@string/pref_sirf_enable_gga_key"
-                    android:enabled="false"
-                    android:persistent="true"
-                    android:defaultValue="true"
-                    android:title="@string/pref_enable_gga_title"
-                    android:summaryOn="@string/pref_enable_gga_summary_on"
-                    android:summaryOff="@string/pref_enable_gga_summary_off"/>
-            <CheckBoxPreference
-                    android:key="@string/pref_sirf_enable_rmc_key"
-                    android:enabled="false"
-                    android:persistent="true"
-                    android:defaultValue="true"
-                    android:title="@string/pref_enable_rmc_title"
-                    android:summaryOn="@string/pref_enable_rmc_summary_on"
-                    android:summaryOff="@string/pref_enable_rmc_summary_off"/>
-            <CheckBoxPreference
-                    android:key="@string/pref_sirf_enable_gsa_key"
-                    android:persistent="true"
-                    android:title="@string/pref_enable_gsa_title"
-                    android:summaryOn="@string/pref_enable_gsa_summary_on"
-                    android:summaryOff="@string/pref_enable_gsa_summary_off"/>
-            <CheckBoxPreference
-                    android:key="@string/pref_sirf_enable_gsv_key"
-                    android:persistent="true"
-                    android:title="@string/pref_enable_gsv_title"
-                    android:summaryOn="@string/pref_enable_gsv_summary_on"
-                    android:summaryOff="@string/pref_enable_gsv_summary_off"/>
-            <CheckBoxPreference
-                    android:key="@string/pref_sirf_enable_vtg_key"
-                    android:persistent="true"
-                    android:title="@string/pref_enable_vtg_title"
-                    android:summaryOn="@string/pref_enable_vtg_summary_on"
-                    android:summaryOff="@string/pref_enable_vtg_summary_off"/>
-            <CheckBoxPreference
-                    android:key="@string/pref_sirf_enable_gll_key"
-                    android:persistent="true"
-                    android:title="@string/pref_enable_gll_title"
-                    android:summaryOn="@string/pref_enable_gll_summary_on"
-                    android:summaryOff="@string/pref_enable_gll_summary_off"/>
-            <CheckBoxPreference
-                    android:key="@string/pref_sirf_enable_zda_key"
-                    android:persistent="true"
-                    android:title="@string/pref_enable_zda_title"
-                    android:summaryOn="@string/pref_enable_zda_summary_on"
-                    android:summaryOff="@string/pref_enable_zda_summary_off"/>
-        </PreferenceCategory>
-        <PreferenceCategory
-                android:order="100"
-                android:title="@string/pref_sirf_gps_category_title">
-            <CheckBoxPreference
-                    android:key="@string/pref_sirf_enable_sbas_key"
-                    android:persistent="true"
-                    android:defaultValue="true"
-                    android:title="@string/pref_enable_sbas_title"
-                    android:summaryOn="@string/pref_enable_sbas_summary_on"
-                    android:summaryOff="@string/pref_enable_sbas_summary_off"/>
-            <CheckBoxPreference
-                    android:key="@string/pref_sirf_enable_nmea_key"
-                    android:enabled="false"
-                    android:persistent="true"
-                    android:defaultValue="true"
-                    android:title="@string/pref_enable_nmea_title"
-                    android:summaryOn="@string/pref_enable_nmea_summary_on"
-                    android:summaryOff="@string/pref_enable_nmea_summary_off"/>
-            <CheckBoxPreference
-                    android:key="@string/pref_sirf_enable_static_navigation_key"
-                    android:persistent="true"
-                    android:defaultValue="false"
-                    android:title="@string/pref_enable_static_navigation_title"
-                    android:summaryOn="@string/pref_enable_static_navigation_summary_on"
-                    android:summaryOff="@string/pref_enable_static_navigation_summary_off"/>
-        </PreferenceCategory>
-    </PreferenceScreen>
+                android:shouldDisableView="true">
+            <PreferenceCategory
+                    android:order="200"
+                    android:orderingFromXml="true"
+                    android:title="@string/pref_sirf_nmea_category_title">
+                <CheckBoxPreference
+                        android:key="@string/pref_sirf_enable_gga_key"
+                        android:enabled="false"
+                        android:persistent="true"
+                        android:defaultValue="true"
+                        android:title="@string/pref_enable_gga_title"
+                        android:summaryOn="@string/pref_enable_gga_summary_on"
+                        android:summaryOff="@string/pref_enable_gga_summary_off"/>
+                <CheckBoxPreference
+                        android:key="@string/pref_sirf_enable_rmc_key"
+                        android:enabled="false"
+                        android:persistent="true"
+                        android:defaultValue="true"
+                        android:title="@string/pref_enable_rmc_title"
+                        android:summaryOn="@string/pref_enable_rmc_summary_on"
+                        android:summaryOff="@string/pref_enable_rmc_summary_off"/>
+                <CheckBoxPreference
+                        android:key="@string/pref_sirf_enable_gsa_key"
+                        android:persistent="true"
+                        android:title="@string/pref_enable_gsa_title"
+                        android:summaryOn="@string/pref_enable_gsa_summary_on"
+                        android:summaryOff="@string/pref_enable_gsa_summary_off"/>
+                <CheckBoxPreference
+                        android:key="@string/pref_sirf_enable_gsv_key"
+                        android:persistent="true"
+                        android:title="@string/pref_enable_gsv_title"
+                        android:summaryOn="@string/pref_enable_gsv_summary_on"
+                        android:summaryOff="@string/pref_enable_gsv_summary_off"/>
+                <CheckBoxPreference
+                        android:key="@string/pref_sirf_enable_vtg_key"
+                        android:persistent="true"
+                        android:title="@string/pref_enable_vtg_title"
+                        android:summaryOn="@string/pref_enable_vtg_summary_on"
+                        android:summaryOff="@string/pref_enable_vtg_summary_off"/>
+                <CheckBoxPreference
+                        android:key="@string/pref_sirf_enable_gll_key"
+                        android:persistent="true"
+                        android:title="@string/pref_enable_gll_title"
+                        android:summaryOn="@string/pref_enable_gll_summary_on"
+                        android:summaryOff="@string/pref_enable_gll_summary_off"/>
+                <CheckBoxPreference
+                        android:key="@string/pref_sirf_enable_zda_key"
+                        android:persistent="true"
+                        android:title="@string/pref_enable_zda_title"
+                        android:summaryOn="@string/pref_enable_zda_summary_on"
+                        android:summaryOff="@string/pref_enable_zda_summary_off"/>
+            </PreferenceCategory>
+            <PreferenceCategory
+                    android:order="100"
+                    android:title="@string/pref_sirf_gps_category_title">
+                <CheckBoxPreference
+                        android:key="@string/pref_sirf_enable_sbas_key"
+                        android:persistent="true"
+                        android:defaultValue="true"
+                        android:title="@string/pref_enable_sbas_title"
+                        android:summaryOn="@string/pref_enable_sbas_summary_on"
+                        android:summaryOff="@string/pref_enable_sbas_summary_off"/>
+                <CheckBoxPreference
+                        android:key="@string/pref_sirf_enable_nmea_key"
+                        android:enabled="false"
+                        android:persistent="true"
+                        android:defaultValue="true"
+                        android:title="@string/pref_enable_nmea_title"
+                        android:summaryOn="@string/pref_enable_nmea_summary_on"
+                        android:summaryOff="@string/pref_enable_nmea_summary_off"/>
+                <CheckBoxPreference
+                        android:key="@string/pref_sirf_enable_static_navigation_key"
+                        android:persistent="true"
+                        android:defaultValue="false"
+                        android:title="@string/pref_enable_static_navigation_title"
+                        android:summaryOn="@string/pref_enable_static_navigation_summary_on"
+                        android:summaryOff="@string/pref_enable_static_navigation_summary_off"/>
+            </PreferenceCategory>
+        </PreferenceScreen>
+    </PreferenceCategory>
     <CheckBoxPreference
             android:dependency="@string/pref_start_gps_key"
             android:enabled="true"
@@ -183,10 +180,10 @@
                 android:defaultValue="@string/defaultTrackFileDirectory"
                 android:summary="@string/pref_trackfile_directory_summary"/>
         <!--<EditTextPreference-->
-                <!--android:key="@string/pref_trackfile_prefix_key"-->
-                <!--android:title="@string/pref_trackfile_prefix_title"-->
-                <!--android:defaultValue="@string/defaultTrackFilePrefix"-->
-                <!--android:summary="@string/pref_trackfile_prefix_summary"/>-->
+        <!--android:key="@string/pref_trackfile_prefix_key"-->
+        <!--android:title="@string/pref_trackfile_prefix_title"-->
+        <!--android:defaultValue="@string/defaultTrackFilePrefix"-->
+        <!--android:summary="@string/pref_trackfile_prefix_summary"/>-->
     </PreferenceScreen>
 
     <PreferenceCategory

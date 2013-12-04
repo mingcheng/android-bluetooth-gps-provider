@@ -7,15 +7,15 @@ import com.gracecode.android.btgps.BuildConfig;
 public class Logger {
     static final private String TAG = "com.gracecode.android.btgps";
 
-    static final public void e(String message) {
+    static public void e(String message) {
         log(Log.ERROR, message);
     }
 
-    static final public void v(String message) {
+    static public void v(String message) {
         log(Log.VERBOSE, message);
     }
 
-    static final public void i(String message) {
+    static public void i(String message) {
         log(Log.INFO, message);
     }
 
@@ -23,7 +23,11 @@ public class Logger {
         log(Log.WARN, s);
     }
 
-    static final private int log(int level, String message) {
+    public static void d(String s) {
+        log(Log.DEBUG, s);
+    }
+
+    static private int log(int level, String message) {
         if (BuildConfig.DEBUG) {
             switch (level) {
                 case Log.ERROR:
@@ -34,6 +38,9 @@ public class Logger {
 
                 case Log.WARN:
                     return Log.w(TAG, message);
+
+                case Log.DEBUG:
+                    return Log.d(TAG, message);
 
                 default:
                     return Log.v(TAG, message);

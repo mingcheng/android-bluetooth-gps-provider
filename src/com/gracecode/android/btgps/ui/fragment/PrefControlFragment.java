@@ -100,6 +100,8 @@ public class PrefControlFragment extends PreferenceFragment
                 updateProviderName();
                 break;
         }
+
+        getActivity().onContentChanged();
     }
 
 

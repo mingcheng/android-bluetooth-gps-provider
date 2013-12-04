@@ -52,9 +52,9 @@ public class ControlFragment extends Fragment implements View.OnClickListener {
                 case BluetoothGPS.ACTION_PROVIDER_ADD:
                 case BluetoothGPS.ACTION_PROVIDER_REMOVE:
                     String provider = intent.getStringExtra(BluetoothGPS.EXTRA_PROVIDER);
-                    if (provider.equals(LocationManager.GPS_PROVIDER)) {
+                    if (provider != null && provider.equals(LocationManager.GPS_PROVIDER)) {
                         mButtonProviderToggleButton.setChecked(
-                                (intent.getAction().equals(BluetoothGPS.ACTION_PROVIDER_ADD)) ? true : false
+                                BluetoothGPS.ACTION_PROVIDER_ADD.equals(intent.getAction())
                         );
                     }
                     break;
