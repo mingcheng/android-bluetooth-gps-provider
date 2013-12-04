@@ -11,7 +11,10 @@ import com.gracecode.android.btgps.task.ReadNmeaTask;
 import com.gracecode.android.btgps.util.Logger;
 
 import java.io.IOException;
+import java.io.OutputStreamWriter;
 import java.util.UUID;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 public class ConnectThread extends Thread {
     private final Context mContext;
@@ -23,6 +26,8 @@ public class ConnectThread extends Thread {
     private int mRetries = 0;
     private BluetoothSocket mBluetoothDeviceSocket;
     private ReadNmeaTask mReadNmeaTask;
+    private ExecutorService mNotificationPool;
+    private OutputStreamWriter mNmeaCommandWriter;
 
 
     public interface OnStatusChangeListener extends ReadNmeaTask.OnNmeaReadListener {
@@ -41,6 +46,8 @@ public class ConnectThread extends Thread {
         mBluetoothDevice = device;
         mListener = listener;
         mSharedPreferences = PreferenceManager.getDefaultSharedPreferences(context);
+
+        mNotificationPool = Executors.newSingleThreadExecutor();
     }
 
 
@@ -118,9 +125,8 @@ public class ConnectThread extends Thread {
     public void connect() {
         try {
             UUID uuid = getUUID(mBluetoothDevice);
-
             mListener.onStartConnect();
-            if (false) {
+            if (true) {
                 mBluetoothDeviceSocket = mBluetoothDevice.createRfcommSocketToServiceRecord(uuid);
             } else {
                 mBluetoothDeviceSocket = mBluetoothDevice.createInsecureRfcommSocketToServiceRecord(uuid);
@@ -130,6 +136,10 @@ public class ConnectThread extends Thread {
             mBluetoothDeviceSocket.connect();
 
             if (mBluetoothDeviceSocket.isConnected()) {
+
+                mNmeaCommandWriter = new OutputStreamWriter(mBluetoothDeviceSocket.getOutputStream());
+
+
                 // Read NMEA Sentence
                 mReadNmeaTask = new ReadNmeaTask(mContext, mBluetoothDeviceSocket.getInputStream(), mListener);
                 mReadNmeaTask.run();
@@ -159,6 +169,7 @@ public class ConnectThread extends Thread {
                 mReadNmeaTask = null;
             }
 
+            mNmeaCommandWriter.close();
             mBluetoothDeviceSocket.close();
         } catch (IOException e) {
             e.printStackTrace();
@@ -184,7 +195,27 @@ public class ConnectThread extends Thread {
         return mBluetoothDevice;
     }
 
+    public int getRetries() {
+        return mRetries;
+    }
+
     public boolean isConnected() {
-        return (mBluetoothDeviceSocket != null) && mBluetoothDeviceSocket.isConnected();
+        if ((mBluetoothDeviceSocket != null) && mBluetoothDeviceSocket.isConnected()) {
+            mNotificationPool.execute(new Runnable() {
+                @Override
+                public void run() {
+                    try {
+                        Logger.w("write, write!");
+                        mNmeaCommandWriter.write("$PSRF151,01*F");
+                        mNmeaCommandWriter.flush();
+                    } catch (Exception e) {
+                        mBluetoothDeviceSocket = null;
+                    }
+                }
+            });
+            return true;
+        } else {
+            return false;
+        }
     }
 }

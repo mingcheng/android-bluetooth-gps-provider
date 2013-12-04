@@ -46,7 +46,13 @@ public class ConnectService extends Service {
      * @return boolean
      */
     private boolean isConnected() {
-        return (mConnectThread != null) && mConnectThread.isConnected();
+        if (mConnectThread != null) {
+            if (mConnectThread.isConnected() || mConnectThread.getRetries() > 0) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     /**
