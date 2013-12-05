@@ -17,7 +17,7 @@ import java.util.Locale;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
-public class SirfCommander {
+public class SirfWraper {
     private SharedPreferences sharedPreferences;
     private Context mContext;
     private OutputStream mStream;
@@ -25,7 +25,7 @@ public class SirfCommander {
     private ExecutorService mRunCommandPool;
     private OutputStreamWriter mNmeaCommandWriter;
 
-    public SirfCommander(Context context, OutputStream stream) {
+    public SirfWraper(Context context, OutputStream stream) {
         mContext = context;
         mStream = stream;
         mStreamWriter = new OutputStreamWriter(stream);
