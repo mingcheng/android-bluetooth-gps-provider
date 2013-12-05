@@ -31,7 +31,3 @@ proguard-project.txt
 # Eclipse project files
 /.classpath
 /.project
-
-/assets/*.ttf
-/assets/*.ttc
-/assets/*.otf

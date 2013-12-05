@@ -147,5 +147,6 @@
     <string name="about_sources">The source code is available from Git repository on the project website:
         http://sourceforge.net/p/bluegps4droid
     </string>
+    <string name="feedback" formatted="false">Feedback for %s version %s</string>
 
 </resources>

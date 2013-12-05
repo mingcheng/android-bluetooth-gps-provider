@@ -4,7 +4,6 @@ import android.app.Fragment;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
-import android.location.Location;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -20,36 +19,21 @@ public class StatusFragment extends Fragment {
         public void onReceive(Context context, Intent intent) {
             switch (intent.getAction()) {
                 case BluetoothGPS.ACTION_UPDATE_LOCATION:
-                    Location location = intent.getParcelableExtra(BluetoothGPS.EXTRA_LOCATION);
-
-                    mLatitudeView.setText(location.getLatitude() + "");
-                    mLongitudeView.setText(location.getLongitude() + "");
-                    mSpeedView.setText(location.getSpeed() + "");
                     break;
 
                 case BluetoothGPS.ACTION_DEVICE_CONNECT_FAILED:
                     break;
 
-                case BluetoothGPS.ACTION_DEVICE_CONNECT_SUCCESS:
+                case BluetoothGPS.ACTION_UPDATE_SENTENCE:
+                    ((TextView) getView()).setText(intent.getStringExtra(BluetoothGPS.EXTRA_SENTENCE));
                     break;
             }
         }
     };
 
-
-    private TextView mLatitudeView;
-    private TextView mLongitudeView;
-    private TextView mSpeedView;
-
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
-        View view = inflater.inflate(R.layout.fragment_status, null);
-
-        mLatitudeView = (TextView) view.findViewById(R.id.latitude);
-        mLongitudeView = (TextView) view.findViewById(R.id.longitude);
-        mSpeedView = (TextView) view.findViewById(R.id.speed);
-
-        return view;
+        return inflater.inflate(R.layout.fragment_status, null);
     }
 
     @Override

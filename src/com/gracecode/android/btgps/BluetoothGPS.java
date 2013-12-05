@@ -42,7 +42,7 @@ public class BluetoothGPS extends Application {
     public static final String PREF_TRACK_FILE_PREFIX = "trackFilePrefix";
     public static final String PREF_BLUETOOTH_DEVICE = "bluetoothDevice";
     public static final String PREF_ABOUT = "about";
-
+    public static final String PREF_FEEDBACK = "feedback";
     public static final String PREF_SIRF_GPS = "sirfGps";
     public static final String PREF_SIRF_ENABLE_GGA = "enableGGA";
     public static final String PREF_SIRF_ENABLE_RMC = "enableRMC";

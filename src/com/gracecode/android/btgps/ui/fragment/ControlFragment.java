@@ -1,156 +1,128 @@
 package com.gracecode.android.btgps.ui.fragment;
 
-import android.app.Fragment;
-import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
-import android.content.*;
-import android.graphics.Typeface;
-import android.location.LocationManager;
+import android.content.BroadcastReceiver;
+import android.content.Context;
+import android.content.Intent;
+import android.content.SharedPreferences;
+import android.content.pm.PackageInfo;
+import android.content.pm.PackageManager;
 import android.os.Bundle;
-import android.os.IBinder;
-import android.view.LayoutInflater;
-import android.view.View;
-import android.view.ViewGroup;
-import android.widget.*;
+import android.preference.*;
 import com.gracecode.android.btgps.BluetoothGPS;
 import com.gracecode.android.btgps.R;
-import com.gracecode.android.btgps.helper.UIHelper;
-import com.gracecode.android.btgps.serivce.ConnectService;
-import com.gracecode.android.btgps.serivce.ProviderService;
-import com.gracecode.android.btgps.util.Logger;
+import com.gracecode.android.common.helper.IntentHelper;
 
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Set;
 
-public class ControlFragment extends Fragment implements View.OnClickListener {
-    private ArrayAdapter<String> mBluetoothNamesAdapter;
-    private Spinner mDeviceNamesSpinner;
-    private Button mButtonConnectButton;
-    private StatusReceiver mStatusReceiver = new StatusReceiver();
-    private BluetoothAdapter mBluetoothAdapter;
-    private List<BluetoothDevice> mPairedDevices = new ArrayList<>();
-    private ToggleButton mButtonProviderToggleButton;
+public class ControlFragment extends PreferenceFragment
+        implements SharedPreferences.OnSharedPreferenceChangeListener {
+    private BluetoothGPS mBluetoothGPS;
+    private SharedPreferences mSharedPreferences;
 
-    private class StatusReceiver extends BroadcastReceiver implements View.OnClickListener {
+    private BroadcastReceiver mStatusReceiver = new BroadcastReceiver() {
         @Override
         public void onReceive(Context context, Intent intent) {
             switch (intent.getAction()) {
-                case BluetoothDevice.ACTION_ACL_DISCONNECTED:
                 case BluetoothGPS.ACTION_DEVICE_DISCONNECTED:
-                case BluetoothGPS.ACTION_DEVICE_CONNECT_FAILED:
                     markDisConnected();
                     break;
 
-                case BluetoothGPS.ACTION_DEVICE_CONNECT_SUCCESS:
-                    markConnected((BluetoothDevice) intent.getParcelableExtra(BluetoothGPS.EXTRA_DEVICE));
-                    break;
-
-                case BluetoothDevice.ACTION_ACL_CONNECTED:
-                    break;
-
-                case BluetoothGPS.ACTION_PROVIDER_ADD:
-                case BluetoothGPS.ACTION_PROVIDER_REMOVE:
-                    String provider = intent.getStringExtra(BluetoothGPS.EXTRA_PROVIDER);
-                    if (provider != null && provider.equals(LocationManager.GPS_PROVIDER)) {
-                        mButtonProviderToggleButton.setChecked(
-                                BluetoothGPS.ACTION_PROVIDER_ADD.equals(intent.getAction())
-                        );
-                    }
+                case BluetoothGPS.ACTION_DEVICE_CONNECTED:
+                    markConnected();
                     break;
             }
-        }
-
-        @Override
-        public void onClick(View view) {
-
-        }
-    }
-
-    public void markConnected(BluetoothDevice device) {
-        mButtonConnectButton.setEnabled(true);
-        mButtonConnectButton.setText(getString(R.string.disconnect));
-        mButtonConnectButton.setTag(BluetoothGPS.ACTION_DEVICE_CONNECTED);
-
-        mButtonProviderToggleButton.setEnabled(true);
-        if (device != null) {
-            UIHelper.showToast(getActivity(), String.format(getString(R.string.connected), device.getName()));
-        }
-
-        updateProviderToggleButton();
-    }
-
-    private void updateProviderToggleButton() {
-        if (mProviderServiceBinder != null) {
-            mButtonProviderToggleButton.setChecked(
-                    mProviderServiceBinder.isProvideExists(LocationManager.GPS_PROVIDER)
-            );
-        }
-    }
-
-    private ProviderService.SimpleBinder mProviderServiceBinder;
-    private ServiceConnection connection = new ServiceConnection() {
-        @Override
-        public void onServiceConnected(ComponentName componentName, IBinder iBinder) {
-            if (iBinder instanceof ProviderService.SimpleBinder) {
-                mProviderServiceBinder = (ProviderService.SimpleBinder) iBinder;
-                updateProviderToggleButton();
-            }
-        }
-
-        @Override
-        public void onServiceDisconnected(ComponentName componentName) {
-            mProviderServiceBinder = null;
         }
     };
 
+
     public void markDisConnected() {
-        mButtonConnectButton.setEnabled(true);
-        mButtonConnectButton.setText(getString(R.string.connect));
-        mButtonConnectButton.setTag(BluetoothGPS.ACTION_DEVICE_DISCONNECTED);
-
-        mButtonProviderToggleButton.setChecked(false);
-        mButtonProviderToggleButton.setEnabled(false);
-
-        mDeviceNamesSpinner.setEnabled(true);
+        CheckBoxPreference pref = (CheckBoxPreference) findPreference(BluetoothGPS.PREF_START_GPS);
+        pref.setChecked(false);
     }
 
-
-    public void markConnecting() {
-        mButtonConnectButton.setEnabled(false);
-        mButtonConnectButton.setText(getString(R.string.connecting));
-
-        mDeviceNamesSpinner.setEnabled(false);
-        mButtonProviderToggleButton.setEnabled(false);
+    public void markConnected() {
+        CheckBoxPreference pref = (CheckBoxPreference) findPreference(BluetoothGPS.PREF_START_GPS);
+        pref.setChecked(true);
     }
 
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        addPreferencesFromResource(R.xml.pref);
     }
 
     @Override
     public void onActivityCreated(Bundle savedInstanceState) {
         super.onActivityCreated(savedInstanceState);
+        mBluetoothGPS = (BluetoothGPS) getActivity().getApplication();
 
-        mBluetoothNamesAdapter = new ArrayAdapter<>(getActivity(), android.R.layout.simple_list_item_1);
-        mDeviceNamesSpinner.setAdapter(mBluetoothNamesAdapter);
-        mButtonConnectButton.setOnClickListener(ControlFragment.this);
-        mButtonProviderToggleButton.setOnClickListener(ControlFragment.this);
-        mBluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
+        mSharedPreferences = mBluetoothGPS.getSharedPreferences();
+        mSharedPreferences.registerOnSharedPreferenceChangeListener(ControlFragment.this);
     }
 
     @Override
-    public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
-        View view = inflater.inflate(R.layout.fragment_control, null);
-        mDeviceNamesSpinner = (Spinner) view.findViewById(R.id.device_names);
-        mButtonConnectButton = (Button) view.findViewById(R.id.connect);
-        mButtonProviderToggleButton = (ToggleButton) view.findViewById(R.id.toggle_provider);
+    public void onDestroy() {
+        super.onDestroy();
+        mSharedPreferences.unregisterOnSharedPreferenceChangeListener(ControlFragment.this);
+    }
 
-        TextView iconView = (TextView) view.findViewById(R.id.icon);
-        iconView.setTypeface(Typeface.createFromAsset(getActivity().getAssets(), "foundation-icons.ttf"));
-        return view;
+
+    @Override
+    public boolean onPreferenceTreeClick(PreferenceScreen preferenceScreen, Preference preference) {
+        try {
+            switch (preference.getKey()) {
+                case BluetoothGPS.PREF_START_GPS:
+                    if (mSharedPreferences.getBoolean(BluetoothGPS.PREF_START_GPS, true)) {
+                        mBluetoothGPS.connect(getBluetoothDeviceFromPref());
+                    } else {
+                        mBluetoothGPS.disconnect();
+                    }
+                    break;
+
+                case BluetoothGPS.PREF_ABOUT:
+
+                    break;
+
+                case BluetoothGPS.PREF_FEEDBACK:
+                    try {
+                        PackageInfo info = getActivity().getPackageManager().getPackageInfo(
+                                getActivity().getPackageName(), PackageManager.GET_META_DATA);
+
+                        String title = getString(R.string.feedback, getString(R.string.app_name), info.versionName);
+                        IntentHelper.sendMail(getActivity(),
+                                new String[]{getString(R.string.mail)}, title, null);
+                    } catch (PackageManager.NameNotFoundException e) {
+                        e.printStackTrace();
+                    }
+                    break;
+            }
+
+        } catch (NullPointerException e) {
+            e.printStackTrace();
+        }
+
+        return super.onPreferenceTreeClick(preferenceScreen, preference);
+    }
+
+    @Override
+    public void onSharedPreferenceChanged(SharedPreferences sharedPreferences, String key) {
+        switch (key) {
+            case BluetoothGPS.PREF_BLUETOOTH_DEVICE:
+                updateDevicePreferenceSummary();
+                break;
+
+            case BluetoothGPS.PREF_CONNECTION_RETRIES:
+                updateMaxConnRetries();
+                break;
+
+            case BluetoothGPS.PREF_MOCK_GPS_NAME:
+                updateProviderName();
+                break;
+        }
+
+        getActivity().onContentChanged();
     }
 
 
@@ -158,23 +130,11 @@ public class ControlFragment extends Fragment implements View.OnClickListener {
     public void onResume() {
         super.onResume();
 
-        Set<BluetoothDevice> pairedDevices = mBluetoothAdapter.getBondedDevices();
-        if (pairedDevices.size() > 0) {
-            mPairedDevices.clear();
-            mBluetoothNamesAdapter.clear();
-            for (BluetoothDevice device : pairedDevices) {
-                mPairedDevices.add(device);
-                mBluetoothNamesAdapter.add(device.getName());
-            }
-
-            mBluetoothNamesAdapter.notifyDataSetChanged();
-        }
-
+        updateDevicePreferenceList();
+        updateDevicePreferenceSummary();
+        updateMaxConnRetries();
+        updateProviderName();
         getActivity().registerReceiver(mStatusReceiver, BluetoothGPS.getIntentFilter());
-//        getActivity().bindService(
-//                BroadcastHelper.getProviderServerIntent(getActivity(), null),
-//                connection,
-//                Context.BIND_AUTO_CREATE);
     }
 
 
@@ -182,52 +142,74 @@ public class ControlFragment extends Fragment implements View.OnClickListener {
     public void onPause() {
         super.onPause();
         getActivity().unregisterReceiver(mStatusReceiver);
-        getActivity().unbindService(connection);
     }
 
 
-    @Override
-    public void onClick(View view) {
-        Intent intent = new Intent();
+    /**
+     * Update pared device for pref list.
+     */
+    private void updateDevicePreferenceList() {
+        ListPreference prefDevices = (ListPreference) findPreference(BluetoothGPS.PREF_BLUETOOTH_DEVICE);
+        Set<BluetoothDevice> pairedDevices = mBluetoothGPS.getPairedDevices();
+        String[] entryValues = new String[pairedDevices.size()];
+        String[] entries = new String[pairedDevices.size()];
 
-        switch (view.getId()) {
-            case R.id.connect:
-                switch ((String) mButtonConnectButton.getTag()) {
-                    case BluetoothGPS.ACTION_DEVICE_CONNECTED:
-                        intent.setAction(ConnectService.ACTION_DISCONNECT);
-                        markDisConnected();
-                        break;
-
-                    default:
-                    case BluetoothGPS.ACTION_DEVICE_DISCONNECTED:
-                        try {
-                            BluetoothDevice bluetoothDevice
-                                    = mPairedDevices.get(mDeviceNamesSpinner.getSelectedItemPosition());
-
-                            if (bluetoothDevice != null) {
-                                Logger.i("Selected bluetooth device name is '" + bluetoothDevice.getName() + "'");
-                                intent.setAction(ConnectService.ACTION_CONNECT);
-                                intent.putExtra(BluetoothGPS.EXTRA_DEVICE, bluetoothDevice);
-                                markConnecting();
-                            }
-                        } catch (ArrayIndexOutOfBoundsException e) {
-                            e.printStackTrace();
-                        }
-                        break;
-                }
-                break;
-
-            case R.id.toggle_provider:
-                if (mButtonProviderToggleButton.isChecked()) {
-                    intent.setAction(BluetoothGPS.ACTION_PROVIDER_ADD);
-                } else {
-                    intent.setAction(BluetoothGPS.ACTION_PROVIDER_REMOVE);
-                }
-
-                intent.putExtra(BluetoothGPS.EXTRA_PROVIDER, LocationManager.GPS_PROVIDER);
-                break;
+        int i = 0;
+        for (BluetoothDevice device : pairedDevices) {
+            entryValues[i] = device.getAddress();
+            entries[i] = device.getName();
+            i++;
         }
 
-        getActivity().sendBroadcast(intent);
+
+        prefDevices.setEntryValues(entryValues);
+        prefDevices.setEntries(entries);
+
+        if (entryValues.length <= 0) {
+            prefDevices.setEnabled(false);
+        } else {
+            prefDevices.setEnabled(true);
+        }
+    }
+
+    /**
+     * Update selected device name.
+     */
+    private void updateDevicePreferenceSummary() {
+        String deviceName = "";
+        ListPreference prefDevices = (ListPreference) findPreference(BluetoothGPS.PREF_BLUETOOTH_DEVICE);
+
+        if (prefDevices != null) {
+            try {
+                deviceName = getBluetoothDeviceFromPref().getName();
+            } catch (NullPointerException e) {
+                deviceName = getString(android.R.string.unknownName);
+            } finally {
+                prefDevices.setSummary(getString(R.string.pref_bluetooth_device_summary, deviceName));
+            }
+        }
+    }
+
+
+    private void updateMaxConnRetries() {
+        Preference prefMaxConnRetries = findPreference(BluetoothGPS.PREF_CONNECTION_RETRIES);
+        String maxConnRetries = mSharedPreferences.getString(BluetoothGPS.PREF_CONNECTION_RETRIES,
+                getString(R.string.defaultConnectionRetries));
+        prefMaxConnRetries.setSummary(getString(R.string.pref_connection_retries_summary, maxConnRetries));
+    }
+
+
+    private BluetoothDevice getBluetoothDeviceFromPref() {
+        String deviceAddress = mSharedPreferences.getString(
+                BluetoothGPS.PREF_BLUETOOTH_DEVICE, getString(android.R.string.unknownName));
+        return mBluetoothGPS.getRemoteDevice(deviceAddress);
+    }
+
+
+    private void updateProviderName() {
+        Preference prefMaxConnRetries = findPreference(BluetoothGPS.PREF_MOCK_GPS_NAME);
+        String prodiverName = mSharedPreferences.getString(BluetoothGPS.PREF_MOCK_GPS_NAME,
+                getString(R.string.defaultMockGpsName));
+        prefMaxConnRetries.setSummary(getString(R.string.pref_mock_gps_name_summary, prodiverName));
     }
 }

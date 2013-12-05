@@ -11,7 +11,7 @@ import com.gracecode.android.btgps.BluetoothGPS;
 import com.gracecode.android.btgps.R;
 import com.gracecode.android.btgps.task.ReadNmeaTask;
 import com.gracecode.android.btgps.util.Logger;
-import com.gracecode.android.btgps.util.SirfCommander;
+import com.gracecode.android.btgps.util.SirfWraper;
 
 import java.io.IOException;
 import java.util.UUID;
@@ -38,7 +38,7 @@ public class ConnectThread extends Thread {
     private int mRetries = 0;
     private BluetoothSocket mBluetoothDeviceSocket;
     private ReadNmeaTask mReadNmeaTask;
-    private SirfCommander mSirfCommander;
+    private SirfWraper mSirfWraper;
 
 
     public interface OnStatusChangeListener extends ReadNmeaTask.OnNmeaReadListener {
@@ -148,7 +148,7 @@ public class ConnectThread extends Thread {
             if (mBluetoothDeviceSocket.isConnected()) {
 
                 // Send Sirf Command
-                mSirfCommander = new SirfCommander(mContext, mBluetoothDeviceSocket.getOutputStream());
+                mSirfWraper = new SirfWraper(mContext, mBluetoothDeviceSocket.getOutputStream());
                 if (isSirfDevice()) {
                     Logger.v("Make as Sirf GPS, Send some commands.");
                     asSirfDevice();
@@ -180,35 +180,35 @@ public class ConnectThread extends Thread {
 
     private void asSirfDevice() {
         if (mSharedPreferences.contains(PREF_SIRF_ENABLE_GLL)) {
-            mSirfCommander.enableNmeaGLL(mSharedPreferences.getBoolean(PREF_SIRF_ENABLE_GLL, false));
+            mSirfWraper.enableNmeaGLL(mSharedPreferences.getBoolean(PREF_SIRF_ENABLE_GLL, false));
         }
         if (mSharedPreferences.contains(PREF_SIRF_ENABLE_VTG)) {
-            mSirfCommander.enableNmeaVTG(mSharedPreferences.getBoolean(PREF_SIRF_ENABLE_VTG, false));
+            mSirfWraper.enableNmeaVTG(mSharedPreferences.getBoolean(PREF_SIRF_ENABLE_VTG, false));
         }
         if (mSharedPreferences.contains(PREF_SIRF_ENABLE_GSA)) {
-            mSirfCommander.enableNmeaGSA(mSharedPreferences.getBoolean(PREF_SIRF_ENABLE_GSA, false));
+            mSirfWraper.enableNmeaGSA(mSharedPreferences.getBoolean(PREF_SIRF_ENABLE_GSA, false));
         }
         if (mSharedPreferences.contains(PREF_SIRF_ENABLE_GSV)) {
-            mSirfCommander.enableNmeaGSV(mSharedPreferences.getBoolean(PREF_SIRF_ENABLE_GSV, false));
+            mSirfWraper.enableNmeaGSV(mSharedPreferences.getBoolean(PREF_SIRF_ENABLE_GSV, false));
         }
         if (mSharedPreferences.contains(PREF_SIRF_ENABLE_ZDA)) {
-            mSirfCommander.enableNmeaZDA(mSharedPreferences.getBoolean(PREF_SIRF_ENABLE_ZDA, false));
+            mSirfWraper.enableNmeaZDA(mSharedPreferences.getBoolean(PREF_SIRF_ENABLE_ZDA, false));
         }
         if (mSharedPreferences.contains(PREF_SIRF_ENABLE_STATIC_NAVIGATION)) {
-            mSirfCommander.enableStaticNavigation(mSharedPreferences.getBoolean(PREF_SIRF_ENABLE_STATIC_NAVIGATION, false));
+            mSirfWraper.enableStaticNavigation(mSharedPreferences.getBoolean(PREF_SIRF_ENABLE_STATIC_NAVIGATION, false));
         } else if (mSharedPreferences.contains(PREF_SIRF_ENABLE_NMEA)) {
-            mSirfCommander.enableNMEA(mSharedPreferences.getBoolean(PREF_SIRF_ENABLE_NMEA, true));
+            mSirfWraper.enableNMEA(mSharedPreferences.getBoolean(PREF_SIRF_ENABLE_NMEA, true));
         }
         if (mSharedPreferences.contains(PREF_SIRF_ENABLE_SBAS)) {
-            mSirfCommander.enableSBAS(mSharedPreferences.getBoolean(PREF_SIRF_ENABLE_SBAS, true));
+            mSirfWraper.enableSBAS(mSharedPreferences.getBoolean(PREF_SIRF_ENABLE_SBAS, true));
         }
-        mSirfCommander.sendNmeaCommand(getString(R.string.sirf_nmea_gga_on));
-        mSirfCommander.sendNmeaCommand(getString(R.string.sirf_nmea_rmc_on));
+        mSirfWraper.sendNmeaCommand(getString(R.string.sirf_nmea_gga_on));
+        mSirfWraper.sendNmeaCommand(getString(R.string.sirf_nmea_rmc_on));
         if (mSharedPreferences.contains(PREF_SIRF_ENABLE_GGA)) {
-            mSirfCommander.enableNmeaGGA(mSharedPreferences.getBoolean(PREF_SIRF_ENABLE_GGA, true));
+            mSirfWraper.enableNmeaGGA(mSharedPreferences.getBoolean(PREF_SIRF_ENABLE_GGA, true));
         }
         if (mSharedPreferences.contains(PREF_SIRF_ENABLE_RMC)) {
-            mSirfCommander.enableNmeaRMC(mSharedPreferences.getBoolean(PREF_SIRF_ENABLE_RMC, true));
+            mSirfWraper.enableNmeaRMC(mSharedPreferences.getBoolean(PREF_SIRF_ENABLE_RMC, true));
         }
     }
 
@@ -256,7 +256,7 @@ public class ConnectThread extends Thread {
 
     public boolean isConnected() {
         if ((mBluetoothDeviceSocket != null) && mBluetoothDeviceSocket.isConnected()) {
-            mSirfCommander.sendNmeaCommand(getString(R.string.sirf_nmea_rmc_on));
+            mSirfWraper.sendNmeaCommand(getString(R.string.sirf_nmea_rmc_on));
             return true;
         } else {
             return false;
