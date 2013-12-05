@@ -12,7 +12,7 @@ import android.os.Binder;
 import android.os.Bundle;
 import android.os.IBinder;
 import com.gracecode.android.btgps.BluetoothGPS;
-import com.gracecode.android.btgps.util.Logger;
+import com.gracecode.android.common.Logger;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;

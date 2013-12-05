@@ -7,7 +7,7 @@ import android.os.IBinder;
 import android.text.format.DateFormat;
 import com.gracecode.android.btgps.BluetoothGPS;
 import com.gracecode.android.btgps.R;
-import com.gracecode.android.btgps.util.Logger;
+import com.gracecode.android.common.Logger;
 
 import java.io.BufferedWriter;
 import java.io.File;

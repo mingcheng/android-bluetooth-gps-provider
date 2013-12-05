@@ -18,7 +18,7 @@ import com.gracecode.android.btgps.R;
 import com.gracecode.android.btgps.helper.BroadcastHelper;
 import com.gracecode.android.btgps.thread.ConnectThread;
 import com.gracecode.android.btgps.ui.MainActivity;
-import com.gracecode.android.btgps.util.Logger;
+import com.gracecode.android.common.Logger;
 
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;

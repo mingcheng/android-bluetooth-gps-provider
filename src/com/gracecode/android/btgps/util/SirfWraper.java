@@ -8,6 +8,7 @@ import android.preference.PreferenceManager;
 import com.gracecode.android.btgps.BluetoothGPS;
 import com.gracecode.android.btgps.R;
 import com.gracecode.android.btgps.helper.SirfHelper;
+import com.gracecode.android.common.Logger;
 
 import java.io.IOException;
 import java.io.OutputStream;

@@ -10,7 +10,7 @@ import android.preference.PreferenceManager;
 import com.gracecode.android.btgps.BluetoothGPS;
 import com.gracecode.android.btgps.R;
 import com.gracecode.android.btgps.task.ReadNmeaTask;
-import com.gracecode.android.btgps.util.Logger;
+import com.gracecode.android.common.Logger;
 import com.gracecode.android.btgps.util.SirfWraper;
 
 import java.io.IOException;
